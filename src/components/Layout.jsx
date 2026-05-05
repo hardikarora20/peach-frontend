@@ -81,6 +81,18 @@ export function AppShell({ children }) {
             <div className="topbar-profile-text">
               <strong>{profile?.name || "Guest"}</strong>
               <span>{profile?.gender || "No profile yet"}</span>
+              {/* <button
+                onClick={() => {
+                  const current =
+                    document.documentElement.getAttribute("data-theme");
+                  document.documentElement.setAttribute(
+                    "data-theme",
+                    current === "dark" ? "light" : "dark"
+                  );
+                }}
+              >
+                Toggle Theme
+              </button> */}
             </div>
           </div>
         </header>

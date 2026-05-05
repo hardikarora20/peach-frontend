@@ -10,6 +10,7 @@ import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import HomeRedirect from "./pages/HomeRedirect";
 import NotFound from "./pages/NotFound";
+import EditProfilePage from "./pages/EditProfilePage";
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
           path="/app/profile"
           element={
             <AppShell>
-              <ProfilePage />
+              <EditProfilePage />
             </AppShell>
           }
         />
