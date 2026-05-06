@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   Cake,
   MapPin,
@@ -8,14 +7,18 @@ import {
   MessageCircle,
   Moon,
   Sparkles,
-  Coffee,
-  X,
-  User,
+  Users,
+  Utensils,
+  Martini,
+  CigaretteOff,
   Globe,
+  Coffee,
+  Image as PhotoIcon,
+  User,
+  X,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-
 const MAX_IMAGES = 6;
 
 function hasText(value) {
@@ -97,6 +100,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [heroFailed, setHeroFailed] = useState(false);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -131,62 +135,61 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
-  const images = (profile.images || []).slice(0, MAX_IMAGES);
-  const mainImage = images[0];
-  const restImages = images.slice(1);
+  useEffect(() => {
+    setHeroFailed(false);
+  }, [profile]);
 
+  const images = (profile?.images || []).slice(0, MAX_IMAGES);
   const heroImage =
+    images[0] ||
     profile?.profileImageUrl ||
     profile?.avatarUrl ||
     profile?.photoUrl ||
     profile?.imageUrl ||
     "";
+  const galleryImages = images.slice(1, 6);
 
-  const heroChips = useMemo(() => {
-    const chips = [
+  const firstTrait = toArray(profile?.personalityTraits)[0];
+
+  const heroLeftChips = useMemo(() => {
+    return [
       hasText(profile?.age)
-        ? { text: profile.age, icon: <Cake size={14} /> }
+        ? { text: String(profile.age), icon: <Cake size={14} /> }
+        : null,
+      hasText(profile?.sleepStyle)
+        ? { text: humanize(profile.sleepStyle), icon: <Moon size={14} /> }
+        : null,
+      hasText(profile?.gender)
+        ? { text: humanize(profile.gender), icon: <Users size={14} /> }
+        : null,
+    ].filter(Boolean);
+  }, [profile]);
+
+  const heroRightChips = useMemo(() => {
+    return [
+      hasText(profile?.datingIntent)
+        ? { text: humanize(profile.datingIntent), icon: <Heart size={14} /> }
         : null,
       hasText(profile?.location)
         ? { text: profile.location, icon: <MapPin size={14} /> }
         : null,
-      hasText(profile?.gender)
-        ? { text: humanize(profile.gender), icon: "◌" }
+      hasText(firstTrait)
+        ? { text: humanize(firstTrait), icon: <Sparkles size={14} /> }
         : null,
-      hasText(profile?.datingIntent)
-        ? { text: humanize(profile.datingIntent), icon: <Heart size={14} /> }
-        : null,
-      hasText(profile?.sleepStyle)
-        ? { text: humanize(profile.sleepStyle), icon: "☾" }
-        : null,
-      toArray(profile?.personalityTraits)[0]
-        ? { text: humanize(toArray(profile.personalityTraits)[0]), icon: "☺" }
-        : null,
-      hasText(profile?.loveLanguage)
-        ? { text: humanize(profile.loveLanguage), icon: "♥" }
-        : null,
-      hasText(profile?.communicationStyle)
-        ? {
-            text: humanize(profile.communicationStyle),
-            icon: <MessageCircle size={14} />,
-          }
-        : null,
-    ];
-
-    return chips.filter(Boolean).slice(0, 6);
-  }, [profile]);
+    ].filter(Boolean);
+  }, [profile, firstTrait]);
 
   const quickInfo = useMemo(() => {
     return [
       {
         label: "Intent",
         value: humanize(profile?.datingIntent),
-        icon: "❤",
+        icon: <Heart size={14} />,
       },
       {
         label: "Love language",
         value: humanize(profile?.loveLanguage),
-        icon: "♥",
+        icon: <Sparkles size={14} />,
       },
       {
         label: "Lifestyle",
@@ -197,17 +200,17 @@ export default function ProfilePage() {
         ]
           .filter(Boolean)
           .join(" • "),
-        icon: "☕",
+        icon: <Coffee size={14} />,
       },
       {
         label: "Communication",
         value: humanize(profile?.communicationStyle),
-        icon: "💬",
+        icon: <MessageCircle size={14} />,
       },
       {
         label: "Dealbreakers",
         value: joinHuman(profile?.dealbreakers, ", "),
-        icon: "✕",
+        icon: <X size={14} />,
       },
     ].filter((item) => hasText(item.value));
   }, [profile]);
@@ -236,13 +239,21 @@ export default function ProfilePage() {
 
   const aboutMeta = [
     hasText(profile?.gender)
-      ? { label: "Gender", value: humanize(profile.gender), icon: "⚪" }
+      ? {
+          label: "Gender",
+          value: humanize(profile.gender),
+          icon: <Users size={14} />,
+        }
       : null,
     hasText(profile?.age)
-      ? { label: "Age", value: String(profile.age), icon: "🎂" }
+      ? { label: "Age", value: String(profile.age), icon: <Cake size={14} /> }
       : null,
     hasText(profile?.location)
-      ? { label: "Location", value: profile.location, icon: "📍" }
+      ? {
+          label: "Location",
+          value: profile.location,
+          icon: <MapPin size={14} />,
+        }
       : null,
   ].filter(Boolean);
 
@@ -251,42 +262,42 @@ export default function ProfilePage() {
       ? {
           label: "Communication style",
           value: humanize(profile.communicationStyle),
-          icon: "💬",
+          icon: <MessageCircle size={14} />,
         }
       : null,
     hasText(profile?.loveLanguage)
       ? {
           label: "Love language",
           value: humanize(profile.loveLanguage),
-          icon: "♥",
+          icon: <Heart size={14} />,
         }
       : null,
     hasText(profile?.conflictStyle)
       ? {
           label: "Conflict style",
           value: humanize(profile.conflictStyle),
-          icon: "🕊",
+          icon: <Sparkles size={14} />,
         }
       : null,
     hasText(profile?.openToLongDistance)
       ? {
           label: "Open to long distance",
           value: humanize(profile.openToLongDistance),
-          icon: "🌍",
+          icon: <Globe size={14} />,
         }
       : null,
     hasText(profile?.foodPreference)
       ? {
           label: "Food preference",
           value: humanize(profile.foodPreference),
-          icon: "🍽",
+          icon: <Utensils size={14} />,
         }
       : null,
     hasText(profile?.sleepStyle)
       ? {
           label: "Sleep style",
           value: humanize(profile.sleepStyle),
-          icon: "☾",
+          icon: <Moon size={14} />,
         }
       : null,
   ].filter(Boolean);
@@ -310,6 +321,7 @@ export default function ProfilePage() {
     coreValues.length > 0;
   const showDealbreakers = dealbreakers.length > 0;
   const showHighlights = highlights.length > 0;
+  const showPhotos = galleryImages.length > 0;
 
   if (loading) {
     return (
@@ -343,36 +355,55 @@ export default function ProfilePage() {
           >
             ← Back to matches
           </button>
-
-          {/* <div className="profile-topbar__title">
-            <span className="eyebrow">Profile</span>
-            <h1>{profile?.name || "Your profile"}</h1>
-          </div> */}
-
-          {/* <button className="profile-menu" type="button">
-            ⋯
-          </button> */}
         </div>
 
         <div className="profile-hero">
-          <div className="profile-orbit">
-            <div className="hero-avatar">
-              {heroImage ? (
-                <img src={heroImage} alt={profile?.name || "Profile"} />
-              ) : (
-                <span>{initials(profile?.name)}</span>
-              )}
+          <div className="profile-hero__row">
+            <div className="hero-side hero-side--left">
+              {heroLeftChips.map((chip, index) => (
+                <div
+                  key={`${chip.text}-${index}`}
+                  className={`hero-chip hero-chip--${(index % 3) + 1}`}
+                  style={{
+                    animationDelay: `${index * 0.25}s`,
+                    ["--duration"]: `${6.2 + index * 0.7}s`,
+                  }}
+                >
+                  <span className="hero-chip__icon">{chip.icon}</span>
+                  <span>{chip.text}</span>
+                </div>
+              ))}
             </div>
 
-            {heroChips.map((chip, index) => (
-              <div
-                key={`${chip.text}-${index}`}
-                className={`hero-chip hero-chip--${(index % 6) + 1}`}
-              >
-                <span className="hero-chip__icon">{chip.icon}</span>
-                <span>{chip.text}</span>
+            <div className="hero-center">
+              <div className="hero-avatar">
+                {heroImage && !heroFailed ? (
+                  <img
+                    src={heroImage}
+                    alt={profile?.name || "Profile"}
+                    onError={() => setHeroFailed(true)}
+                  />
+                ) : (
+                  <span>{initials(profile?.name)}</span>
+                )}
               </div>
-            ))}
+            </div>
+
+            <div className="hero-side hero-side--right">
+              {heroRightChips.map((chip, index) => (
+                <div
+                  key={`${chip.text}-${index}`}
+                  className={`hero-chip hero-chip--${(index % 3) + 4}`}
+                  style={{
+                    animationDelay: `${index * 0.25}s`,
+                    ["--duration"]: `${6.8 + index * 0.7}s`,
+                  }}
+                >
+                  <span className="hero-chip__icon">{chip.icon}</span>
+                  <span>{chip.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="profile-nameblock">
@@ -402,6 +433,33 @@ export default function ProfilePage() {
           </div>
         ) : null}
 
+        {showPhotos ? (
+          <Section title="Photos" icon={<PhotoIcon size={14} />}>
+            <div
+              className={`photo-mosaic count-${Math.min(
+                galleryImages.length,
+                5
+              )}`}
+            >
+              {galleryImages.map((img, index) => (
+                <div
+                  className={`photo-tile photo-tile--${index}`}
+                  key={img + index}
+                >
+                  <img
+                    src={img}
+                    alt={`${profile?.name || "Profile"} photo ${index + 2}`}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.parentElement.style.display = "none";
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null}
+
         {showHighlights ? (
           <section className="highlights-wrap">
             <div className="profile-section__head profile-section__head--plain">
@@ -426,7 +484,7 @@ export default function ProfilePage() {
         <div className="profile-columns">
           <div className="profile-column">
             {showAbout ? (
-              <Section title="About me" icon="👤">
+              <Section title="About me" icon={<User size={14} />}>
                 <div className="about-box">
                   {hasText(profile?.bio) ? <p>{profile.bio}</p> : null}
 
@@ -466,28 +524,28 @@ export default function ProfilePage() {
                     <StatCard
                       label="Looking for"
                       value={humanize(profile.datingIntent)}
-                      icon="❤"
+                      icon={<Heart size={14} />}
                     />
                   ) : null}
                   {hasText(profile?.connectionPreference) ? (
                     <StatCard
                       label="Connection"
                       value={humanize(profile.connectionPreference)}
-                      icon="◎"
+                      icon={<span>◎</span>}
                     />
                   ) : null}
                   {hasText(profile?.openToLongDistance) ? (
                     <StatCard
                       label="Long distance"
                       value={humanize(profile.openToLongDistance)}
-                      icon="🌍"
+                      icon={<Globe size={14} />}
                     />
                   ) : null}
                   {coreValues.length > 0 ? (
                     <StatCard
                       label="Core values"
                       value={coreValues.join(" • ")}
-                      icon="✦"
+                      icon={<span>✦</span>}
                     />
                   ) : null}
                 </div>
@@ -516,14 +574,14 @@ export default function ProfilePage() {
                 <div className="details-list details-list--two">
                   {hasText(profile?.drinkHabit) ? (
                     <InfoRow
-                      icon="🍸"
+                      icon={<Martini size={14} />}
                       label="Drinks"
                       value={humanize(profile.drinkHabit)}
                     />
                   ) : null}
                   {hasText(profile?.smokeHabit) ? (
                     <InfoRow
-                      icon="🚭"
+                      icon={<CigaretteOff size={14} />}
                       label="Smokes"
                       value={humanize(profile.smokeHabit)}
                     />
