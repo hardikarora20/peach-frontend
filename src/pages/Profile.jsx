@@ -17,6 +17,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import "./profile.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 const MAX_IMAGES = 6;
@@ -237,6 +238,18 @@ export default function ProfilePage() {
     return items.filter((item) => hasText(item.text));
   }, [profile]);
 
+  const profilePrompts = useMemo(
+    () =>
+      Array.isArray(profile?.profilePrompts)
+        ? profile.profilePrompts
+            .filter((item) => hasText(item?.question) || hasText(item?.answer))
+            .slice(0, 3)
+        : [],
+    [profile]
+  );
+
+  const openingLine = hasText(profile?.openingLine) ? profile.openingLine : "";
+
   const aboutMeta = [
     hasText(profile?.gender)
       ? {
@@ -321,6 +334,7 @@ export default function ProfilePage() {
     coreValues.length > 0;
   const showDealbreakers = dealbreakers.length > 0;
   const showHighlights = highlights.length > 0;
+  const showPrompts = hasText(openingLine) || profilePrompts.length > 0;
   const showPhotos = galleryImages.length > 0;
 
   if (loading) {
@@ -478,6 +492,36 @@ export default function ProfilePage() {
                 </article>
               ))}
             </div>
+          </section>
+        ) : null}
+
+        {showPrompts ? (
+          <section className="profile-prompts-section">
+            {hasText(openingLine) ? (
+              <div className="opening-line-card">
+                <div className="opening-line-card__head">
+                  <span className="profile-section__icon">↗</span>
+                  <span>Opening line</span>
+                </div>
+                <p>{openingLine}</p>
+              </div>
+            ) : null}
+
+            {profilePrompts.length > 0 ? (
+              <div className="prompt-showcase-grid">
+                {profilePrompts.map((prompt) => (
+                  <article
+                    key={prompt.id || prompt.question}
+                    className="prompt-showcase-card"
+                  >
+                    <div className="prompt-showcase-card__question">
+                      {prompt.question}
+                    </div>
+                    <p>{prompt.answer}</p>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </section>
         ) : null}
 
