@@ -6,11 +6,12 @@ import AuthPage from "./pages/AuthPage";
 import ViewUserPage from "./pages/ViewUserPage";
 import Profile from "./pages/Profile";
 import FeedPage from "./pages/FeedPage";
-import MatchesPage from "./pages/MatchesPage";
+import Conversations from "./pages/Conversations";
 import ChatPage from "./pages/ChatPage";
 import HomeRedirect from "./pages/HomeRedirect";
 import NotFound from "./pages/NotFound";
 import EditProfilePage from "./pages/EditProfilePage";
+import MatchesPage from "./pages/MatchesPage";
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
           }
         />
         <Route
-          path="/app/profile"
+          path="/app/editprofile"
           element={
             <AppShell>
               <EditProfilePage />
@@ -36,7 +37,7 @@ function App() {
           }
         />
         <Route
-          path="/app/profile2"
+          path="/app/profile"
           element={
             <AppShell>
               <Profile />
@@ -48,6 +49,14 @@ function App() {
           element={
             <AppShell>
               <FeedPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/app/conversations"
+          element={
+            <AppShell>
+              <Conversations />
             </AppShell>
           }
         />

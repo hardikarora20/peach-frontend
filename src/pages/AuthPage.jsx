@@ -1,20 +1,22 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Input, Loader } from '../components/UI';
-import { useAuth } from '../context/AuthContext';
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button, Input, Loader } from "../components/UI";
+import { useAuth } from "../context/AuthContext";
 
 export default function AuthPage() {
   const { login, register, authLoading, hasProfile } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState('login');
-  const [values, setValues] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState("login");
+  const [values, setValues] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
 
-  const subtitle = useMemo(() => (
-    mode === 'login'
-      ? 'Continue where you left off.'
-      : 'Create your Peach account in seconds.'
-  ), [mode]);
+  const subtitle = useMemo(
+    () =>
+      mode === "login"
+        ? "Continue where you left off."
+        : "Create your Peach account in seconds.",
+    [mode]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,16 +25,23 @@ export default function AuthPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
-      if (mode === 'login') {
+      if (mode === "login") {
         await login(values.email.trim(), values.password);
       } else {
         await register(values.email.trim(), values.password);
       }
-      navigate(hasProfile ? '/app/feed' : '/app/profile', { replace: true });
+      // navigate(hasProfile ? "/app/feed" : "/app/editprofile", {
+      navigate("/app/feed", {
+        replace: true,
+      });
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Authentication failed';
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Authentication failed";
       setError(msg);
     }
   };
@@ -49,8 +58,18 @@ export default function AuthPage() {
         </div>
 
         <div className="auth-toggle">
-          <button className={mode === 'login' ? 'toggle active' : 'toggle'} onClick={() => setMode('login')}>Log in</button>
-          <button className={mode === 'register' ? 'toggle active' : 'toggle'} onClick={() => setMode('register')}>Create account</button>
+          <button
+            className={mode === "login" ? "toggle active" : "toggle"}
+            onClick={() => setMode("login")}
+          >
+            Log in
+          </button>
+          <button
+            className={mode === "register" ? "toggle active" : "toggle"}
+            onClick={() => setMode("register")}
+          >
+            Create account
+          </button>
         </div>
 
         <p className="auth-subtitle">{subtitle}</p>
@@ -70,7 +89,9 @@ export default function AuthPage() {
             label="Password"
             name="password"
             type="password"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            autoComplete={
+              mode === "login" ? "current-password" : "new-password"
+            }
             placeholder="••••••••"
             value={values.password}
             onChange={handleChange}
@@ -80,7 +101,13 @@ export default function AuthPage() {
           {error ? <div className="form-error">{error}</div> : null}
 
           <Button type="submit" disabled={authLoading}>
-            {authLoading ? <Loader label="Working" /> : mode === 'login' ? 'Log in' : 'Create account'}
+            {authLoading ? (
+              <Loader label="Working" />
+            ) : mode === "login" ? (
+              "Log in"
+            ) : (
+              "Create account"
+            )}
           </Button>
         </form>
 

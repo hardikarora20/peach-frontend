@@ -5,9 +5,10 @@ import { Avatar } from "./UI";
 
 const navItems = [
   { to: "/app/feed", label: "Feed" },
+  { to: "/app/conversations", label: "Conversations" },
   { to: "/app/matches", label: "Matches" },
   { to: "/app/profile", label: "Profile" },
-  { to: "/app/profile2", label: "ProfileTemp" },
+  // { to: "/app/profile2", label: "ProfileTemp" },
 ];
 
 export function AppShell({ children }) {
@@ -49,7 +50,7 @@ export function AppShell({ children }) {
         </nav>
 
         <div className="sidebar-card">
-          <div className="sidebar-user">
+          {/* <div className="sidebar-user">
             <Avatar name={profile?.name || "P"} />
             <div>
               <strong>{profile?.name || "Your profile"}</strong>
@@ -57,7 +58,15 @@ export function AppShell({ children }) {
                 {profile?.location || "Set your profile to get better matches"}
               </span>
             </div>
-          </div>
+          </div> */}
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              navigate("/app/editprofile", { replace: true });
+            }}
+          >
+            Edit profile
+          </button>
           <button
             className="btn btn-ghost"
             onClick={() => {
