@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./components/Layout";
 import AuthPage from "./pages/AuthPage";
-import ProfilePage from "./pages/ProfilePage";
+import ViewUserPage from "./pages/ViewUserPage";
 import Profile from "./pages/Profile";
 import FeedPage from "./pages/FeedPage";
 import MatchesPage from "./pages/MatchesPage";
@@ -64,6 +64,14 @@ function App() {
           element={
             <AppShell>
               <ChatPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/app/profile/:userId"
+          element={
+            <AppShell>
+              <ViewUserPage />
             </AppShell>
           }
         />
