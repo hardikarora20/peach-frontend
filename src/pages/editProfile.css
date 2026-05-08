@@ -13,6 +13,16 @@
     ),
     linear-gradient(180deg, #fffaf7 0%, #fffdfc 100%);
   overflow-y: auto;
+  width: 100%;
+}
+
+.edit-profile-page {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox, Safari 18.2+, Chromium 121+ */
+}
+
+.edit-profile-page::-webkit-scrollbar {
+  display: none; /* Older Safari and Chromium */
 }
 
 .edit-profile-shell {
@@ -111,6 +121,12 @@
   background: rgba(255, 111, 145, 0.12);
   color: #b13b5a;
   border: 1px solid rgba(255, 111, 145, 0.16);
+}
+
+.edit-banner--success {
+  background: rgba(111, 214, 155, 0.12);
+  color: #1d8f5a;
+  border: 1px solid rgba(111, 214, 155, 0.24);
 }
 
 .edit-layout {

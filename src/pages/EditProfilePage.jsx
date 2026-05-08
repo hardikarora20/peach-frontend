@@ -651,6 +651,8 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [activePromptCategory, setActivePromptCategory] = useState("love");
   const [profilePrompts, setProfilePrompts] = useState([]);
@@ -782,6 +784,8 @@ export default function EditProfilePage() {
     e.preventDefault();
     setSaving(true);
     setError("");
+    setSuccessMessage("");
+    setShowSuccess(false);
 
     try {
       const token = localStorage.getItem("peach_token");
@@ -834,7 +838,12 @@ export default function EditProfilePage() {
         throw new Error(body?.message || "Could not save profile");
       }
 
-      navigate("/app/profile");
+      setSuccessMessage("Profile saved successfully ✨");
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        navigate("/app/profile");
+      }, 1400);
     } catch (err) {
       setError(err?.message || "Could not save profile");
     } finally {
@@ -919,6 +928,12 @@ export default function EditProfilePage() {
 
           {error ? (
             <div className="edit-banner edit-banner--error">{error}</div>
+          ) : null}
+
+          {showSuccess ? (
+            <div className="edit-banner edit-banner--success">
+              {successMessage}
+            </div>
           ) : null}
 
           <div className="edit-layout">
