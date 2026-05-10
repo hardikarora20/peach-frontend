@@ -71,6 +71,7 @@ export function AppShell({ children }) {
             className="btn btn-ghost"
             onClick={() => {
               logout();
+              localStorage.clear();
               navigate("/auth", { replace: true });
             }}
           >

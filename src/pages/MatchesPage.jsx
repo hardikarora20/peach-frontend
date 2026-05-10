@@ -156,8 +156,9 @@ export default function MatchesPage() {
     navigate(`/app/chat/${matchId}`);
   };
 
-  const handleViewProfile = (match) => {
-    console.log(" " + match);
+  const handleViewProfile = (matches) => {
+    console.log("hi " + matches);
+    // profile, user -> userId
 
     // http://localhost:5173/app/profile/bf208e4a-5c33-4b9b-ae06-5ffb697524fc
     //  0406ea7fa-f3c3-469b-97f8-4fa167edfb2d

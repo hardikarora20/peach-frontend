@@ -12,6 +12,7 @@ import HomeRedirect from "./pages/HomeRedirect";
 import NotFound from "./pages/NotFound";
 import EditProfilePage from "./pages/EditProfilePage";
 import MatchesPage from "./pages/MatchesPage";
+import OnboardingPage from "./pages/OnboardingPage";
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
           element={
             <AppShell>
               <EditProfilePage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/app/onboarding"
+          element={
+            <AppShell>
+              <OnboardingPage />
             </AppShell>
           }
         />

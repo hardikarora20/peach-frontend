@@ -1,0 +1,349 @@
+.onboarding-page {
+  min-height: 100%;
+}
+
+.onboarding-topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.onboarding-topbar__left h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.onboarding-topbar__left p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: rgba(23, 23, 23, 0.62);
+}
+
+.onboarding-stepper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.onboarding-stepper__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.12);
+}
+
+.onboarding-stepper__dot.is-active {
+  background: linear-gradient(135deg, #ff8a73, #ff6f91);
+}
+
+.onboarding-progress-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(240, 230, 224, 0.95);
+  border-radius: 24px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.04);
+}
+
+.onboarding-progress-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.onboarding-progress-card__head h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.onboarding-progress-card__head strong {
+  font-size: 14px;
+  color: rgba(23, 23, 23, 0.7);
+}
+
+.onboarding-progress-card__hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: rgba(23, 23, 23, 0.56);
+}
+
+.onboarding-step-card {
+  min-height: 0;
+}
+
+.onboarding-summary {
+  margin-top: 14px;
+  border-radius: 24px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(240, 230, 224, 0.95);
+}
+
+.onboarding-summary__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.onboarding-summary__head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.onboarding-summary__head p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(23, 23, 23, 0.56);
+}
+
+.onboarding-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.onboarding-summary__grid > div {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 250, 247, 0.92);
+  border: 1px solid rgba(240, 230, 224, 0.9);
+}
+
+.onboarding-summary__grid span {
+  display: block;
+  font-size: 12px;
+  color: rgba(23, 23, 23, 0.56);
+  margin-bottom: 4px;
+}
+
+.onboarding-summary__grid strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.prompt-selected-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.selected-prompts-empty {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 250, 247, 0.9);
+  border: 1px dashed rgba(240, 230, 224, 0.95);
+  color: rgba(23, 23, 23, 0.58);
+  font-size: 14px;
+}
+
+.selected-prompt-card {
+  border: 1px solid rgba(240, 230, 224, 0.95);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.selected-prompt-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.selected-prompt-card__question {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.selected-prompt-card__head p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: rgba(23, 23, 23, 0.55);
+}
+
+.selected-prompt-card__remove {
+  border: none;
+  background: rgba(255, 140, 120, 0.1);
+  color: #ff7c66;
+  border-radius: 999px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.prompt-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prompt-picker__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.prompt-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.prompt-tab {
+  border: 1px solid rgba(240, 230, 224, 0.95);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(23, 23, 23, 0.75);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.prompt-tab.is-active {
+  background: rgba(255, 140, 120, 0.12);
+  color: #ff7c66;
+  border-color: rgba(255, 140, 120, 0.28);
+}
+
+.prompt-counter {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(23, 23, 23, 0.62);
+}
+
+.prompt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.prompt-card {
+  border: 1px solid rgba(240, 230, 224, 0.95);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.prompt-card.is-active {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 250, 247, 0.95),
+    rgba(255, 255, 255, 0.95)
+  );
+  border-color: rgba(255, 140, 120, 0.2);
+}
+
+.prompt-card__toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 700;
+  color: rgba(23, 23, 23, 0.86);
+}
+
+.prompt-card__state {
+  font-size: 12px;
+  color: #ff7c66;
+  white-space: nowrap;
+}
+
+.prompt-answer {
+  margin-top: 12px;
+}
+
+.onboarding-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.onboarding-nav__secondary,
+.onboarding-nav__primary {
+  height: 54px;
+  border: none;
+  border-radius: 999px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.onboarding-nav__secondary {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(240, 230, 224, 0.95);
+  color: rgba(23, 23, 23, 0.78);
+}
+
+.onboarding-nav__primary {
+  background: linear-gradient(135deg, #ff8a73, #ff6f91);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(255, 111, 145, 0.24);
+}
+
+.onboarding-nav__secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .prompt-selected-list {
+    grid-template-columns: 1fr;
+  }
+
+  .prompt-grid,
+  .onboarding-summary__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .onboarding-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .onboarding-stepper {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .prompt-picker__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .onboarding-nav {
+    flex-direction: column;
+  }
+
+  .onboarding-nav__primary,
+  .onboarding-nav__secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
