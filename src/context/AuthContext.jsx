@@ -19,7 +19,7 @@ function readUserId() {
   return localStorage.getItem("peach_user_id") || "";
 }
 
-function safeBooleanFromProfileExistsResponse(data) {
+function parseExistsResponse(data) {
   if (typeof data === "boolean") return data;
   return Boolean(data?.exists ?? data?.data ?? false);
 }
@@ -27,96 +27,129 @@ function safeBooleanFromProfileExistsResponse(data) {
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(readToken());
   const [userId, setUserId] = useState(readUserId());
-  const [authLoading, setAuthLoading] = useState(false);
+
   const [booting, setBooting] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+
   const [profileExists, setProfileExists] = useState(null);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem("peach_token");
+    localStorage.removeItem("peach_user_id");
+
+    setToken("");
+    setUserId("");
+    setProfileExists(false);
+
+    window.dispatchEvent(new Event("storage"));
+  }, []);
+
   const persistAuth = useCallback((nextToken, nextUserId) => {
-    if (nextToken) {
-      localStorage.setItem("peach_token", nextToken);
-      setToken(nextToken);
-    }
+    localStorage.setItem("peach_token", nextToken);
 
     if (nextUserId) {
       localStorage.setItem("peach_user_id", nextUserId);
-      setUserId(nextUserId);
     }
 
+    setToken(nextToken);
+    setUserId(nextUserId || "");
+
     window.dispatchEvent(new Event("storage"));
   }, []);
 
-  const clearAuth = useCallback(() => {
-    localStorage.removeItem("peach_token");
-    localStorage.removeItem("peach_user_id");
-    setToken("");
-    setUserId("");
-    setProfileExists(null);
-    window.dispatchEvent(new Event("storage"));
-  }, []);
+  const authenticatedFetch = useCallback(
+    async (url, options = {}, overrideToken = null) => {
+      const authToken = overrideToken || token;
+
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+          ...(authToken
+            ? {
+                Authorization: `Bearer ${authToken}`,
+              }
+            : {}),
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        logout();
+        throw new Error("Session expired");
+      }
+
+      return response;
+    },
+    [token, logout]
+  );
 
   const refreshProfileExists = useCallback(
-    async (overrideToken = token) => {
-      if (!overrideToken) {
+    async (overrideToken = null) => {
+      const authToken = overrideToken || token;
+
+      if (!authToken) {
         setProfileExists(false);
         return false;
       }
 
       try {
-        const res = await fetch(`${API_BASE}/profile/me/exists`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${overrideToken}`,
-          },
-          cache: "no-store",
-        });
+        const response = await authenticatedFetch(
+          `${API_BASE}/profile/me/exists`,
+          {},
+          authToken
+        );
 
-        if (!res.ok) {
+        if (!response.ok) {
           setProfileExists(false);
           return false;
         }
 
-        const data = await res.json().catch(() => ({}));
-        const exists = safeBooleanFromProfileExistsResponse(data);
+        const data = await response.json().catch(() => ({}));
+
+        const exists = parseExistsResponse(data);
 
         setProfileExists(exists);
+
         return exists;
       } catch (err) {
-        console.error("refreshProfileExists failed:", err);
+        console.error(err);
         setProfileExists(false);
         return false;
       }
     },
-    [token]
+    [token, authenticatedFetch]
   );
 
   const login = useCallback(
     async (email, password) => {
       setAuthLoading(true);
+
       try {
-        const res = await fetch(`${API_BASE}/users/login`, {
+        const response = await fetch(`${API_BASE}/users/login`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             email,
             password,
           }),
         });
 
-        const data = await res.json().catch(() => ({}));
+        const data = await response.json().catch(() => ({}));
 
-        if (!res.ok) {
-          throw new Error(data?.message || data?.error || "Login failed");
+        if (!response.ok) {
+          throw new Error(data?.message || "Login failed");
         }
 
-        const nextToken = data?.token;
-        const nextUserId = data?.userId;
-
-        if (!nextToken) {
+        if (!data?.token) {
           throw new Error("Missing auth token");
         }
 
-        persistAuth(nextToken, nextUserId);
-        await refreshProfileExists(nextToken);
+        persistAuth(data.token, data.userId);
+
+        await refreshProfileExists(data.token);
 
         return data;
       } finally {
@@ -129,35 +162,30 @@ export function AuthProvider({ children }) {
   const register = useCallback(
     async (email, password) => {
       setAuthLoading(true);
+
       try {
-        const res = await fetch(`${API_BASE}/users`, {
+        const response = await fetch(`${API_BASE}/users`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             email,
             password,
           }),
         });
 
-        const data = await res.json().catch(() => ({}));
+        const data = await response.json().catch(() => ({}));
 
-        if (!res.ok) {
-          throw new Error(
-            data?.message || data?.error || "Registration failed"
-          );
+        if (!response.ok) {
+          throw new Error(data?.message || "Registration failed");
         }
 
-        const nextToken = data?.token;
-        const nextUserId = data?.userId;
+        if (data?.token) {
+          persistAuth(data.token, data.userId);
 
-        if (nextToken) {
-          persistAuth(nextToken, nextUserId);
-          await refreshProfileExists(nextToken);
+          await refreshProfileExists(data.token);
         } else {
-          if (nextUserId) {
-            localStorage.setItem("peach_user_id", nextUserId);
-            setUserId(nextUserId);
-          }
           setProfileExists(false);
         }
 
@@ -170,50 +198,48 @@ export function AuthProvider({ children }) {
   );
 
   useEffect(() => {
-    let cancelled = false;
+    let mounted = true;
 
-    const init = async () => {
-      const currentToken = readToken();
-      const currentUserId = readUserId();
+    const bootstrap = async () => {
+      try {
+        const storedToken = readToken();
+        const storedUserId = readUserId();
 
-      if (!cancelled) {
-        setToken(currentToken);
-        setUserId(currentUserId);
-      }
+        if (!mounted) return;
 
-      if (currentToken) {
-        await refreshProfileExists(currentToken);
-      } else {
-        setProfileExists(false);
-      }
+        setToken(storedToken);
+        setUserId(storedUserId);
 
-      if (!cancelled) {
-        setBooting(false);
+        if (storedToken) {
+          await refreshProfileExists(storedToken);
+        } else {
+          setProfileExists(false);
+        }
+      } finally {
+        if (mounted) {
+          setBooting(false);
+        }
       }
     };
 
-    init();
+    bootstrap();
 
     return () => {
-      cancelled = true;
+      mounted = false;
     };
   }, [refreshProfileExists]);
 
   useEffect(() => {
-    const onStorage = () => {
-      const nextToken = readToken();
-      const nextUserId = readUserId();
-
-      setToken(nextToken);
-      setUserId(nextUserId);
-
-      if (!nextToken) {
-        setProfileExists(false);
-      }
+    const handleStorage = () => {
+      setToken(readToken());
+      setUserId(readUserId());
     };
 
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const value = useMemo(
@@ -222,13 +248,19 @@ export function AuthProvider({ children }) {
       userId,
       booting,
       authLoading,
+
       profileExists,
       hasProfile: profileExists === true,
-      setProfileExists,
+
       login,
       register,
-      logout: clearAuth,
+      logout,
+
+      authenticatedFetch,
       refreshProfileExists,
+
+      setProfileExists,
+
       isAuthenticated: Boolean(token),
     }),
     [
@@ -239,7 +271,8 @@ export function AuthProvider({ children }) {
       profileExists,
       login,
       register,
-      clearAuth,
+      logout,
+      authenticatedFetch,
       refreshProfileExists,
     ]
   );
@@ -248,9 +281,11 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
+  const context = useContext(AuthContext);
+
+  if (!context) {
     throw new Error("useAuth must be used inside AuthProvider");
   }
-  return ctx;
+
+  return context;
 }

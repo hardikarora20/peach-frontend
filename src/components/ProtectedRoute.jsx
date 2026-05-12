@@ -27,7 +27,7 @@ export function ProtectedRoute() {
     );
   }
 
-  console.log(token);
+  // console.log(token);
 
   if (!profileExists && location.pathname !== "/app/onboarding") {
     return <Navigate to="/app/onboarding" replace />;

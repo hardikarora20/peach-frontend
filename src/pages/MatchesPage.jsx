@@ -9,7 +9,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import "./matches.css";
-import { profileApi } from "../api/client";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -101,6 +100,7 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openingProfileId, setOpeningProfileId] = useState("");
 
   const loadMatches = async () => {
     setLoading(true);
@@ -146,6 +146,7 @@ export default function MatchesPage() {
           userId,
           user,
           matchedAt: match?.matchedAt || match?.createdAt || "",
+          profileId: match?.profileId || user?.profileId || "",
         };
       })
       .filter((item) => hasText(item.matchId) || hasText(item.userId));
@@ -156,14 +157,47 @@ export default function MatchesPage() {
     navigate(`/app/chat/${matchId}`);
   };
 
-  const handleViewProfile = (matches) => {
-    console.log("hi " + matches);
-    // profile, user -> userId
+  const resolveProfileIdByUserId = async (userId, fallbackProfileId = "") => {
+    if (hasText(fallbackProfileId)) return fallbackProfileId;
+    if (!hasText(userId)) return "";
 
-    // http://localhost:5173/app/profile/bf208e4a-5c33-4b9b-ae06-5ffb697524fc
-    //  0406ea7fa-f3c3-469b-97f8-4fa167edfb2d
-    // if (!profileId) return;
-    // navigate(`/app/profile/${profileId}`);
+    const token = localStorage.getItem("peach_token");
+
+    // Adjust this path if your backend route is slightly different.
+    const res = await fetch(`${API_BASE}/profile/getId/${userId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body?.message || "Could not load profile id");
+    }
+
+    const data = await res.json().catch(() => ({}));
+    return data?.profileId || data?.data?.profileId || data?.id || "";
+  };
+
+  const handleViewProfile = async (userId, fallbackProfileId = "") => {
+    try {
+      setOpeningProfileId(userId || fallbackProfileId || "loading");
+      const profileId = await resolveProfileIdByUserId(
+        userId,
+        fallbackProfileId
+      );
+
+      if (!profileId) {
+        throw new Error("Profile id not found");
+      }
+
+      navigate(`/app/profile/${profileId}`);
+    } catch (err) {
+      setError(err?.message || "Could not open profile");
+    } finally {
+      setOpeningProfileId("");
+    }
   };
 
   if (loading) {
@@ -212,16 +246,18 @@ export default function MatchesPage() {
           </div>
         ) : (
           <div className="matches-grid">
-            {cards.map(({ matchId, userId, user, matchedAt }) => {
+            {cards.map(({ matchId, userId, user, matchedAt, profileId }) => {
               const image = getImage(user);
               const vibe = getPrimaryLine(user);
+              const isOpening = openingProfileId === (userId || profileId);
 
               return (
                 <article className="match-card" key={matchId || userId}>
                   <button
                     type="button"
                     className="match-card__photo"
-                    onClick={() => handleViewProfile(userId)}
+                    onClick={() => handleViewProfile(userId, profileId)}
+                    disabled={isOpening}
                   >
                     {image ? (
                       <img src={image} alt={user?.name || "Match"} />
@@ -255,8 +291,9 @@ export default function MatchesPage() {
                       <button
                         type="button"
                         className="match-card__profile-btn"
-                        onClick={() => handleViewProfile(userId)}
+                        onClick={() => handleViewProfile(userId, profileId)}
                         aria-label="View profile"
+                        disabled={isOpening}
                       >
                         <UserRound size={18} />
                       </button>
@@ -293,7 +330,7 @@ export default function MatchesPage() {
                         type="button"
                         className="match-action match-action--message"
                         onClick={() => handleOpenChat(matchId)}
-                        disabled={!matchId}
+                        disabled={!matchId || isOpening}
                       >
                         <MessageCircle size={18} />
                         Message
@@ -302,11 +339,11 @@ export default function MatchesPage() {
                       <button
                         type="button"
                         className="match-action match-action--view"
-                        onClick={() => handleViewProfile(userId)}
-                        disabled={!userId}
+                        onClick={() => handleViewProfile(userId, profileId)}
+                        disabled={!userId || isOpening}
                       >
                         <UserRound size={18} />
-                        View profile
+                        {isOpening ? "Opening…" : "View profile"}
                       </button>
                     </div>
                   </div>
