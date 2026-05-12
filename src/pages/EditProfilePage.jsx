@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   ArrowLeft,
   Save,
@@ -645,6 +646,35 @@ function ImageSlot({ index, value, onChange, onClear }) {
   );
 }
 
+const waitForProfileCreation = async (token) => {
+  const maxAttempts = 1;
+
+  for (let i = 0; i < maxAttempts; i += 1) {
+    const exists = await checkProfileExists(token);
+    if (exists) return true;
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  return false;
+};
+
+const checkProfileExists = async (token) => {
+  const res = await fetch(`${API_BASE}/profile/me/exists`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) return false;
+
+  const data = await res.json().catch(() => ({}));
+  if (typeof data === "boolean") return data;
+  return Boolean(data?.exists ?? data?.data);
+};
+
 export default function EditProfilePage() {
   const navigate = useNavigate();
   const [form, setForm] = useState(emptyForm());
@@ -653,6 +683,7 @@ export default function EditProfilePage() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const { setProfileExists } = useAuth();
 
   const [activePromptCategory, setActivePromptCategory] = useState("love");
   const [profilePrompts, setProfilePrompts] = useState([]);
@@ -841,9 +872,20 @@ export default function EditProfilePage() {
       setSuccessMessage("Profile saved successfully ✨");
       setShowSuccess(true);
 
-      setTimeout(() => {
-        navigate("/app/profile");
-      }, 1400);
+      const exists = await waitForProfileCreation(token);
+
+      if (!exists) {
+        setError(
+          "Basic info is still necessary before continuing. Please complete the missing fields."
+        );
+        setProfileExists(false);
+        navigate("/app/onboarding");
+      } else {
+        setProfileExists(true);
+        setTimeout(() => {
+          navigate("/app/profile");
+        }, 1400);
+      }
     } catch (err) {
       setError(err?.message || "Could not save profile");
     } finally {

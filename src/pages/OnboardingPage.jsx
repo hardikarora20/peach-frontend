@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,7 +27,6 @@ import "./onboarding.css";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const GENDER_OPTIONS = ["MALE", "FEMALE", "NON_BINARY", "PREFER_NOT_TO_SAY"];
-
 const DATING_INTENT_OPTIONS = [
   "SERIOUS_RELATIONSHIP",
   "CASUAL_DATING",
@@ -34,23 +34,19 @@ const DATING_INTENT_OPTIONS = [
   "OPEN_TO_BOTH",
   "NOT_SURE_YET",
 ];
-
 const CONNECTION_OPTIONS = [
   "LONG_TERM",
   "SHORT_TERM",
   "OPEN_TO_BOTH",
   "NOT_SURE_YET",
 ];
-
 const LONG_DISTANCE_OPTIONS = ["YES", "NO", "MAYBE"];
-
 const COMMUNICATION_OPTIONS = [
   "TEXT_A_LOT",
   "CALLS_OVER_TEXTS",
   "SLOW_REPLIES",
   "DEPENDS_ON_MOOD",
 ];
-
 const LOVE_LANGUAGE_OPTIONS = [
   "WORDS_OF_AFFIRMATION",
   "ACTS_OF_SERVICE",
@@ -58,14 +54,12 @@ const LOVE_LANGUAGE_OPTIONS = [
   "QUALITY_TIME",
   "GIFTS",
 ];
-
 const CONFLICT_OPTIONS = [
   "TALK_IT_OUT_IMMEDIATELY",
   "TAKE_SPACE_FIRST",
   "AVOID_CONFRONTATION",
   "DEPENDS",
 ];
-
 const DRINK_OPTIONS = ["NO", "OCCASIONALLY", "YES"];
 const SMOKE_OPTIONS = ["NO", "OCCASIONALLY", "YES"];
 const FOOD_OPTIONS = ["VEG", "NON_VEG", "EGGETARIAN", "VEGAN"];
@@ -584,12 +578,14 @@ function ImageSlot({ index, value, onChange, onClear }) {
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const { setProfileExists } = useAuth();
 
   const [form, setForm] = useState(emptyForm());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [warningMessage, setWarningMessage] = useState("");
 
   const [step, setStep] = useState(0);
   const [activePromptCategory, setActivePromptCategory] = useState("love");
@@ -612,7 +608,7 @@ export default function OnboardingPage() {
     try {
       const token = localStorage.getItem("peach_token");
       if (!token) {
-        navigate("/");
+        navigate("/auth", { replace: true });
         return;
       }
 
@@ -621,6 +617,7 @@ export default function OnboardingPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-store",
       });
 
       if (response.status === 404) {
@@ -664,6 +661,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const currentOpeningLine =
@@ -720,14 +718,48 @@ export default function OnboardingPage() {
     setProfilePrompts((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const checkProfileExists = async (token) => {
+    const res = await fetch(`${API_BASE}/profile/me/exists`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json().catch(() => ({}));
+    if (typeof data === "boolean") return data;
+    return Boolean(data?.exists ?? data?.data);
+  };
+
+  const waitForProfileCreation = async (token) => {
+    const maxAttempts = 10;
+
+    for (let i = 0; i < maxAttempts; i += 1) {
+      const exists = await checkProfileExists(token);
+      if (exists) return true;
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    return false;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
     setSuccessMessage("");
+    setWarningMessage("");
 
     try {
       const token = localStorage.getItem("peach_token");
+      if (!token) {
+        navigate("/auth", { replace: true });
+        return;
+      }
 
       const payload = {
         name: form.name.trim(),
@@ -767,7 +799,7 @@ export default function OnboardingPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -777,8 +809,22 @@ export default function OnboardingPage() {
         throw new Error(body?.message || "Could not save profile");
       }
 
-      setSuccessMessage("Profile saved successfully. Welcome to Peach ✨");
-      setTimeout(() => navigate("/app/feed"), 1100);
+      setSuccessMessage("Profile saved successfully. Taking you to the feed…");
+      setProfileExists(true);
+      navigate("/app/feed", { replace: true });
+
+      const exists = await waitForProfileCreation(token);
+
+      if (!exists) {
+        setWarningMessage(
+          "Basic info is still necessary before continuing. Please complete the missing fields."
+        );
+        setSuccessMessage("");
+        setSaving(false);
+        return;
+      }
+      setProfileExists(true);
+      navigate("/app/feed", { replace: true });
     } catch (err) {
       setError(err?.message || "Could not save profile");
     } finally {
@@ -853,6 +899,11 @@ export default function OnboardingPage() {
               {successMessage}
             </div>
           ) : null}
+          {warningMessage ? (
+            <div className="edit-banner edit-banner--warning">
+              {warningMessage}
+            </div>
+          ) : null}
 
           {step === 0 ? (
             <Section
@@ -925,66 +976,58 @@ export default function OnboardingPage() {
           ) : null}
 
           {step === 2 ? (
-            <>
-              <Section
-                title="Dating preferences"
-                icon={<Heart size={15} />}
-                hint="How you want this to feel."
-              >
-                <div className="edit-fields-grid">
-                  <SelectField
-                    label="What are you here for?"
-                    value={form.datingIntent}
-                    onChange={(e) =>
-                      updateField("datingIntent", e.target.value)
-                    }
-                    options={DATING_INTENT_OPTIONS}
-                  />
-                  <SelectField
-                    label="Connection preference"
-                    value={form.connectionPreference}
-                    onChange={(e) =>
-                      updateField("connectionPreference", e.target.value)
-                    }
-                    options={CONNECTION_OPTIONS}
-                  />
-                  <SelectField
-                    label="Open to long distance"
-                    value={form.openToLongDistance}
-                    onChange={(e) =>
-                      updateField("openToLongDistance", e.target.value)
-                    }
-                    options={LONG_DISTANCE_OPTIONS}
-                  />
-                  <SelectField
-                    label="Communication style"
-                    icon={<MessageCircle size={14} />}
-                    value={form.communicationStyle}
-                    onChange={(e) =>
-                      updateField("communicationStyle", e.target.value)
-                    }
-                    options={COMMUNICATION_OPTIONS}
-                  />
-                  <SelectField
-                    label="Love language"
-                    icon={<Heart size={14} />}
-                    value={form.loveLanguage}
-                    onChange={(e) =>
-                      updateField("loveLanguage", e.target.value)
-                    }
-                    options={LOVE_LANGUAGE_OPTIONS}
-                  />
-                  <SelectField
-                    label="Conflict style"
-                    value={form.conflictStyle}
-                    onChange={(e) =>
-                      updateField("conflictStyle", e.target.value)
-                    }
-                    options={CONFLICT_OPTIONS}
-                  />
-                </div>
-              </Section>
-            </>
+            <Section
+              title="Dating preferences"
+              icon={<Heart size={15} />}
+              hint="How you want this to feel."
+            >
+              <div className="edit-fields-grid">
+                <SelectField
+                  label="What are you here for?"
+                  value={form.datingIntent}
+                  onChange={(e) => updateField("datingIntent", e.target.value)}
+                  options={DATING_INTENT_OPTIONS}
+                />
+                <SelectField
+                  label="Connection preference"
+                  value={form.connectionPreference}
+                  onChange={(e) =>
+                    updateField("connectionPreference", e.target.value)
+                  }
+                  options={CONNECTION_OPTIONS}
+                />
+                <SelectField
+                  label="Open to long distance"
+                  value={form.openToLongDistance}
+                  onChange={(e) =>
+                    updateField("openToLongDistance", e.target.value)
+                  }
+                  options={LONG_DISTANCE_OPTIONS}
+                />
+                <SelectField
+                  label="Communication style"
+                  icon={<MessageCircle size={14} />}
+                  value={form.communicationStyle}
+                  onChange={(e) =>
+                    updateField("communicationStyle", e.target.value)
+                  }
+                  options={COMMUNICATION_OPTIONS}
+                />
+                <SelectField
+                  label="Love language"
+                  icon={<Heart size={14} />}
+                  value={form.loveLanguage}
+                  onChange={(e) => updateField("loveLanguage", e.target.value)}
+                  options={LOVE_LANGUAGE_OPTIONS}
+                />
+                <SelectField
+                  label="Conflict style"
+                  value={form.conflictStyle}
+                  onChange={(e) => updateField("conflictStyle", e.target.value)}
+                  options={CONFLICT_OPTIONS}
+                />
+              </div>
+            </Section>
           ) : null}
 
           {step === 3 ? (

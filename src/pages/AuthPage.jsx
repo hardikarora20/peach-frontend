@@ -76,7 +76,8 @@ export default function AuthPage() {
       if (mode === "login") {
         await login(values.email.trim(), values.password);
 
-        navigate(hasProfile ? "/app/feed" : "/app/onboarding", {
+        // navigate(hasProfile ? "/app/feed" : "/app/onboarding", {
+        navigate("/app/feed", {
           replace: true,
         });
         return;

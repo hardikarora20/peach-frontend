@@ -2281,3 +2281,8 @@ textarea {
       0 6px 16px rgba(255, 140, 120, 0.14);
   }
 }
+.edit-banner--warning {
+  background: rgba(255, 201, 102, 0.12);
+  border: 1px solid rgba(255, 201, 102, 0.24);
+  color: #9a6a00;
+}
