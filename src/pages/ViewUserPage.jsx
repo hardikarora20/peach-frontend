@@ -121,6 +121,7 @@ export default function ViewUserPage() {
       }
 
       const data = await res.json();
+      console.log(data);
       const nextProfile = data?.data ?? data?.profile ?? data;
       setProfile(nextProfile);
     } catch (err) {

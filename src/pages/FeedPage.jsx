@@ -4,20 +4,42 @@ import {
   Heart,
   X,
   Eye,
-  Menu,
   SlidersHorizontal,
   MapPin,
-  ChevronUp,
-  MessageCircle,
   Sparkles,
-  Bell,
-  UserCircle2,
+  PartyPopper,
+  ArrowRight,
 } from "lucide-react";
-import { profileApi, swipesApi } from "../api/client";
+import { profileApi } from "../api/client";
 import "./feed.css";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+export const swipesApi = {
+  swipe: async (payload) => {
+    const token = localStorage.getItem("peach_token");
+
+    const response = await fetch(`${API_BASE}/swipes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Swipe failed");
+    }
+
+    return data;
+  },
+};
+
 function hasText(value) {
-  return value !== null && value !== undefined && String(value).trim() !== "";
+  return value !== null && value !== undefined && String(value).trim() > 0;
 }
 
 function humanize(value) {
@@ -70,6 +92,10 @@ function getVibeText(profile) {
   return bits.join(" • ");
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function Bubble({ profile, slot, variant = 1 }) {
   const img = getImage(profile);
 
@@ -97,25 +123,58 @@ function Bubble({ profile, slot, variant = 1 }) {
   );
 }
 
-function BottomNav() {
+function MatchModal({ profile, matchId, onClose, onViewMatches }) {
+  if (!profile) return null;
+
   return (
-    <nav className="feed-bottom-nav" aria-label="Primary">
-      <button className="feed-bottom-nav__item is-active" type="button">
-        <Heart size={20} />
-      </button>
-      <button className="feed-bottom-nav__item" type="button">
-        <MessageCircle size={20} />
-      </button>
-      <button className="feed-bottom-nav__item" type="button">
-        <Sparkles size={20} />
-      </button>
-      <button className="feed-bottom-nav__item" type="button">
-        <Bell size={20} />
-      </button>
-      <button className="feed-bottom-nav__item" type="button">
-        <UserCircle2 size={20} />
-      </button>
-    </nav>
+    <div className="match-modal-backdrop" role="dialog" aria-modal="true">
+      <div className="match-modal">
+        <button
+          type="button"
+          className="match-modal__close"
+          onClick={onClose}
+          aria-label="Close match dialog"
+        >
+          <X size={18} />
+        </button>
+
+        <div className="match-modal__icon">
+          <PartyPopper size={30} />
+        </div>
+
+        <div className="match-modal__eyebrow">It is a match</div>
+
+        <h2>You and {profile.name || "this person"} liked each other.</h2>
+
+        <p>
+          This match is now in your Matches tab. You can open it there and start
+          chatting when you are ready.
+        </p>
+
+        {hasText(matchId) ? (
+          <div className="match-modal__meta">Match ID: {matchId}</div>
+        ) : null}
+
+        <div className="match-modal__actions">
+          <button
+            type="button"
+            className="match-modal__primary"
+            onClick={onViewMatches}
+          >
+            View matches
+            <ArrowRight size={16} />
+          </button>
+
+          <button
+            type="button"
+            className="match-modal__secondary"
+            onClick={onClose}
+          >
+            Keep browsing
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -126,9 +185,13 @@ export default function FeedPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [swipeState, setSwipeState] = useState(null);
+  const [matchModal, setMatchModal] = useState(null);
 
   const activeProfile = profiles[activeIndex] || null;
   const activeImage = getImage(activeProfile);
+  const activeProfileId = getId(activeProfile);
+  const vibeText = activeProfile ? getVibeText(activeProfile) : "";
 
   const ambientSlots = useMemo(
     () => [
@@ -188,18 +251,35 @@ export default function FeedPage() {
     if (!activeProfile || actionLoading) return;
 
     setActionLoading(true);
+    setSwipeState({ action });
+
     try {
-      await swipesApi.swipe({
-        targetUserId:
-          activeProfile.userId || activeProfile.id || activeProfile.profileId,
+      console.log(activeProfile);
+      // console.log(profileId);
+      const result = await swipesApi.swipe({
+        targetUserId: activeProfile.userId,
         action,
       });
+
+      const swipeResult = result?.data ?? result ?? {};
+      const matchCreated = Boolean(swipeResult?.matchCreated);
+      const matchId = swipeResult?.matchId || "";
+
+      await sleep(760);
+
+      if (matchCreated) {
+        setMatchModal({
+          profile: activeProfile,
+          matchId,
+        });
+      }
 
       const remaining = profiles.filter((_, index) => index !== activeIndex);
       advanceToNext(remaining);
     } catch (err) {
       console.error("Swipe failed:", err);
     } finally {
+      setSwipeState(null);
       setActionLoading(false);
     }
   };
@@ -217,11 +297,23 @@ export default function FeedPage() {
   return (
     <div className="feed-page">
       <div className="feed-shell">
-        {/* <header className="feed-topbar"></header> */}
-        <section className="feed-stage">
+        <header className="feed-hero">
+          <div className="feed-hero__copy">
+            <div className="feed-kicker">
+              <span className="feed-kicker__icon">🍑</span>
+              <span>For you</span>
+            </div>
+            <h2>Thoughtfully matched, just for you</h2>
+            <p>Profiles nearby, surfaced in a calm card-first layout.</p>
+          </div>
+
           <button className="feed-icon-btn" type="button" aria-label="Filters">
             <SlidersHorizontal size={20} />
+            <span>Filters</span>
           </button>
+        </header>
+
+        <section className="feed-stage">
           <div className="feed-stage__ring feed-stage__ring--1" />
           <div className="feed-stage__ring feed-stage__ring--2" />
           <div className="feed-stage__ring feed-stage__ring--3" />
@@ -237,19 +329,50 @@ export default function FeedPage() {
           ))}
 
           {activeProfile ? (
-            <article className="focus-card" key={getId(activeProfile)}>
+            <article
+              className={`focus-card ${
+                swipeState?.action === "LIKE"
+                  ? "is-swipe-like"
+                  : swipeState?.action === "DISLIKE"
+                  ? "is-swipe-dislike"
+                  : ""
+              }`}
+              key={activeProfileId || activeIndex}
+            >
+              <button
+                className="focus-card__menu"
+                type="button"
+                aria-label="View profile"
+                onClick={() => navigate(`/app/profile/${activeProfileId}`)}
+              >
+                <Eye size={18} />
+              </button>
+
+              {swipeState?.action ? (
+                <div
+                  className={`focus-card__swipe-overlay focus-card__swipe-overlay--${String(
+                    swipeState.action
+                  ).toLowerCase()}`}
+                  aria-hidden="true"
+                >
+                  {swipeState.action === "LIKE" ? (
+                    <>
+                      <Heart size={58} fill="currentColor" />
+                      <span>Liked</span>
+                    </>
+                  ) : (
+                    <>
+                      <X size={58} />
+                      <span>Passed</span>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
               <button
                 className="focus-card__image"
                 type="button"
-                onClick={() =>
-                  navigate(
-                    `/app/profile/${
-                      activeProfile.userId ||
-                      activeProfile.id ||
-                      activeProfile.profileId
-                    }`
-                  )
-                }
+                onClick={() => navigate(`/app/profile/${activeProfileId}`)}
               >
                 {activeImage ? (
                   <img
@@ -283,23 +406,6 @@ export default function FeedPage() {
                       <span>{activeProfile.location || "Nearby"}</span>
                     </div>
                   </div>
-
-                  <button
-                    className="view-profile-btn"
-                    type="button"
-                    onClick={() =>
-                      navigate(
-                        `/app/profile/${
-                          activeProfile.userId ||
-                          activeProfile.id ||
-                          activeProfile.profileId
-                        }`
-                      )
-                    }
-                    aria-label="View profile"
-                  >
-                    <Eye size={18} />
-                  </button>
                 </div>
 
                 <p className="focus-card__bio">
@@ -321,11 +427,11 @@ export default function FeedPage() {
                   </div>
                 ) : null}
 
-                {hasText(getVibeText(activeProfile)) ? (
+                {hasText(vibeText) ? (
                   <div className="focus-quick">
                     <div className="focus-quick__item">
                       <Sparkles size={14} />
-                      <span>{getVibeText(activeProfile)}</span>
+                      <span>{vibeText}</span>
                     </div>
                   </div>
                 ) : null}
@@ -361,13 +467,22 @@ export default function FeedPage() {
           )}
         </section>
 
-        {/* <div className="feed-hint">
-          <ChevronUp size={18} />
+        <div className="feed-hint">
           <span>Swipe to like or pass</span>
-        </div> */}
-
-        {/* <BottomNav /> */}
+        </div>
       </div>
+
+      {matchModal ? (
+        <MatchModal
+          profile={matchModal.profile}
+          matchId={matchModal.matchId}
+          onClose={() => setMatchModal(null)}
+          onViewMatches={() => {
+            setMatchModal(null);
+            navigate("/app/matches");
+          }}
+        />
+      ) : null}
     </div>
   );
 }
