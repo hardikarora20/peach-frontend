@@ -18,7 +18,11 @@ import {
   X,
 } from "lucide-react";
 import "./profile.css";
+import { LogOut, PencilLine } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
+// const navigate = useNavigate();
+// const { logout } = useAuth();
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 const MAX_IMAGES = 6;
 
@@ -369,8 +373,28 @@ export default function ProfilePage() {
           >
             ← Back to matches
           </button>
-        </div>
+          <div className="profile-actions-card">
+            <button
+              className="profile-action-btn"
+              onClick={() => navigate("/app/editprofile", { replace: true })}
+            >
+              <PencilLine size={16} />
+              Edit profile
+            </button>
 
+            <button
+              className="profile-action-btn profile-action-btn--ghost"
+              onClick={() => {
+                // logout();
+                localStorage.clear();
+                navigate("/auth", { replace: true });
+              }}
+            >
+              <LogOut size={16} />
+              Log out
+            </button>
+          </div>
+        </div>
         <div className="profile-hero">
           <div className="profile-hero__row">
             <div className="hero-side hero-side--left">

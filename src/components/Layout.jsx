@@ -1,127 +1,80 @@
 import React from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { Home, MessageCircle, Users, UserRound } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Avatar } from "./UI";
 
 const navItems = [
-  { to: "/app/feed", label: "Feed" },
-  { to: "/app/conversations", label: "Conversations" },
-  { to: "/app/matches", label: "Matches" },
-  { to: "/app/profile", label: "Profile" },
-  // { to: "/app/profile2", label: "ProfileTemp" },
+  { to: "/app/feed", label: "Feed", icon: Home, end: true },
+  { to: "/app/conversations", label: "Conversations", icon: MessageCircle },
+  { to: "/app/matches", label: "Matches", icon: Users },
+  { to: "/app/profile", label: "Profile", icon: UserRound },
 ];
 
 export function AppShell({ children }) {
-  const { profile, logout } = useAuth();
-  const navigate = useNavigate();
+  const { profile } = useAuth();
   const location = useLocation();
 
   const title = location.pathname.includes("/feed")
     ? "Discover"
+    : location.pathname.includes("/conversations") ||
+      location.pathname.includes("/messages")
+    ? "Conversations"
     : location.pathname.includes("/matches")
     ? "Matches"
-    : location.pathname.includes("/chat")
-    ? "Conversation"
+    : location.pathname.includes("/editprofile")
+    ? "Edit profile"
     : "Profile";
 
   return (
     <div className="app-shell">
-      <aside className="desktop-sidebar">
-        <Link to="/app/feed" className="brand">
-          <div className="brand-mark">🍑</div>
-          <div>
-            <strong>Peach</strong>
-            {/* <span>Modern dating</span> */}
-          </div>
-        </Link>
-
-        <nav className="side-nav">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `side-link ${isActive ? "active" : ""}`.trim()
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="sidebar-card">
-          {/* <div className="sidebar-user">
-            <Avatar name={profile?.name || "P"} />
-            <div>
-              <strong>{profile?.name || "Your profile"}</strong>
-              <span>
-                {profile?.location || "Set your profile to get better matches"}
-              </span>
-            </div>
-          </div> */}
-          <button
-            className="btn btn-ghost"
-            onClick={() => {
-              navigate("/app/editprofile", { replace: true });
-            }}
-          >
-            Edit profile
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => {
-              logout();
-              localStorage.clear();
-              navigate("/auth", { replace: true });
-            }}
-          >
-            Log out
-          </button>
-        </div>
-      </aside>
-
       <main className="main-content">
-        <header className="topbar">
+        {/* <header className="topbar">
           <div>
             <span className="eyebrow">Peach</span>
             <h1>{title}</h1>
           </div>
+
           <div className="topbar-profile">
             <Avatar name={profile?.name || "P"} />
             <div className="topbar-profile-text">
               <strong>{profile?.name || "Guest"}</strong>
               <span>{profile?.gender || "No profile yet"}</span>
-              {/* <button
-                onClick={() => {
-                  const current =
-                    document.documentElement.getAttribute("data-theme");
-                  document.documentElement.setAttribute(
-                    "data-theme",
-                    current === "dark" ? "light" : "dark"
-                  );
-                }}
-              >
-                Toggle Theme
-              </button> */}
             </div>
           </div>
-        </header>
+        </header> */}
 
         <div className="app-stage">{children}</div>
       </main>
 
-      <nav className="mobile-nav">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `mobile-nav-item ${isActive ? "active" : ""}`.trim()
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
+      <nav className="bottom-dock" aria-label="Main navigation">
+        <Link to="/app/feed" className="dock-brand" aria-label="Go to feed">
+          <span className="dock-brand__mark">🍑</span>
+          <span className="dock-brand__text">Peach</span>
+        </Link>
+
+        <div className="dock-links">
+          {navItems.slice(1).map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `dock-link ${isActive ? "active" : ""}`.trim()
+                }
+                aria-label={item.label}
+              >
+                <span className="dock-link__icon">
+                  <Icon size={18} />
+                </span>
+                <span className="dock-link__label">{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );

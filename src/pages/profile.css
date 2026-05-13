@@ -411,3 +411,39 @@ src/pages/editProfile.css additions .edit-completion-card {
     align-items: flex-start;
   }
 }
+
+.profile-actions-card {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 24px;
+  /* background: rgba(255, 255, 255, 0.86); */
+  /* border: 1px solid rgba(240, 230, 224, 0.95); */
+  /* box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04); */
+  justify-content: flex-end;
+  align-items: center;
+  align-content: center;
+}
+
+.profile-action-btn {
+  height: 48px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ff8a73, #ff6f91);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.profile-action-btn--ghost {
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(23, 23, 23, 0.8);
+  border: 1px solid rgba(240, 230, 224, 0.95);
+}

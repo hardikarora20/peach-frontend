@@ -288,7 +288,7 @@ export default function MatchesPage() {
                         </div>
                       </div>
 
-                      <button
+                      {/* <button
                         type="button"
                         className="match-card__profile-btn"
                         onClick={() => handleViewProfile(userId, profileId)}
@@ -296,7 +296,7 @@ export default function MatchesPage() {
                         disabled={isOpening}
                       >
                         <UserRound size={18} />
-                      </button>
+                      </button> */}
                     </div>
 
                     {hasText(vibe) ? (
