@@ -22,7 +22,8 @@
 
 .feed-shell {
   width: 100%;
-  min-height: calc(100vh - 170px);
+  /* min-height: calc(100vh - 170px); */
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -30,10 +31,14 @@
 
 .feed-hero {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
   gap: 16px;
   padding: 10px 6px 0;
+  position: fixed;
+  z-index: 100;
+  /* margin: 25px; */
+  width: 100%;
 }
 
 .feed-hero__copy h2 {
@@ -83,6 +88,7 @@
   cursor: pointer;
   font-weight: 700;
   white-space: nowrap;
+  margin: 10px 30px;
 }
 
 .feed-stage {
@@ -242,7 +248,7 @@
 
 .focus-card {
   position: relative;
-  width: min(800px, 80%);
+  /* width: min(800px, 80%); */
   min-height: 320px;
   display: grid;
   grid-template-columns: minmax(290px, 1.02fr) minmax(320px, 0.98fr);

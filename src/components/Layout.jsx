@@ -1,6 +1,13 @@
 import React from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Home, MessageCircle, Users, UserRound } from "lucide-react";
+import {
+  Home,
+  CircleOff,
+  Heart,
+  MessageCircle,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Avatar } from "./UI";
 
@@ -26,6 +33,14 @@ export function AppShell({ children }) {
     ? "Edit profile"
     : "Profile";
 
+  const dockItems = [
+    { to: "/app/feed", label: "Feed", icon: Home, end: true, brand: true },
+    { to: "/app/conversations", label: "Explore", icon: CircleOff },
+    { to: "/app/matches", label: "Matches", icon: Heart },
+    { to: "/app/conversations", label: "Chat", icon: MessageCircle },
+    { to: "/app/profile", label: "Profile", icon: UserRound },
+  ];
+
   return (
     <div className="app-shell">
       <main className="main-content">
@@ -47,14 +62,17 @@ export function AppShell({ children }) {
         <div className="app-stage">{children}</div>
       </main>
 
-      <nav className="bottom-dock" aria-label="Main navigation">
-        <Link to="/app/feed" className="dock-brand" aria-label="Go to feed">
-          <span className="dock-brand__mark">🍑</span>
-          <span className="dock-brand__text">Peach</span>
+      <nav className="peach-dock" aria-label="Primary navigation">
+        <Link
+          to="/app/feed"
+          className="peach-dock__brand"
+          aria-label="Go to feed"
+        >
+          <span className="peach-dock__brand-icon">🍑</span>
         </Link>
 
-        <div className="dock-links">
-          {navItems.slice(1).map((item) => {
+        <div className="peach-dock__items">
+          {dockItems.slice(1).map((item) => {
             const Icon = item.icon;
 
             return (
@@ -63,14 +81,14 @@ export function AppShell({ children }) {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `dock-link ${isActive ? "active" : ""}`.trim()
+                  `peach-dock__item ${isActive ? "is-active" : ""}`.trim()
                 }
-                aria-label={item.label}
               >
-                <span className="dock-link__icon">
-                  <Icon size={18} />
+                <span className="peach-dock__icon">
+                  <Icon size={20} />
                 </span>
-                <span className="dock-link__label">{item.label}</span>
+
+                <span className="peach-dock__label">{item.label}</span>
               </NavLink>
             );
           })}

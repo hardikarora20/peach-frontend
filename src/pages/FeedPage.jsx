@@ -39,7 +39,9 @@ export const swipesApi = {
 };
 
 function hasText(value) {
-  return value !== null && value !== undefined && String(value).trim() > 0;
+  return (
+    value !== null && value !== undefined && String(value).trim().length > 0
+  );
 }
 
 function humanize(value) {
@@ -62,7 +64,7 @@ function initials(name) {
 }
 
 function getId(profile) {
-  return String(profile?.userId || profile?.id || profile?.profileId || "");
+  return String(profile?.profileId || "");
 }
 
 function getImage(profile) {
@@ -298,21 +300,20 @@ export default function FeedPage() {
     <div className="feed-page">
       <div className="feed-shell">
         <header className="feed-hero">
-          <div className="feed-hero__copy">
+          {/* <div className="feed-hero__copy">
             <div className="feed-kicker">
               <span className="feed-kicker__icon">🍑</span>
               <span>For you</span>
             </div>
             <h2>Thoughtfully matched, just for you</h2>
             <p>Profiles nearby, surfaced in a calm card-first layout.</p>
-          </div>
+          </div> */}
 
           <button className="feed-icon-btn" type="button" aria-label="Filters">
             <SlidersHorizontal size={20} />
             <span>Filters</span>
           </button>
         </header>
-
         <section className="feed-stage">
           <div className="feed-stage__ring feed-stage__ring--1" />
           <div className="feed-stage__ring feed-stage__ring--2" />
@@ -414,6 +415,7 @@ export default function FeedPage() {
 
                 {activeProfile.interests?.length ? (
                   <div className="focus-pills">
+                    {console.log(activeProfile.interests.slice(0, 4))}
                     {activeProfile.interests.slice(0, 4).map((item) => (
                       <span key={item} className="focus-pill">
                         {humanize(item)}
@@ -467,9 +469,9 @@ export default function FeedPage() {
           )}
         </section>
 
-        <div className="feed-hint">
+        {/* <div className="feed-hint">
           <span>Swipe to like or pass</span>
-        </div>
+        </div> */}
       </div>
 
       {matchModal ? (

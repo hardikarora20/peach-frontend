@@ -1,8 +1,22 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  MoreHorizontal,
+  Phone,
+  Video,
+  Smile,
+  Mic,
+  Paperclip,
+  SendHorizontal,
+  CheckCheck,
+} from "lucide-react";
+
 import { matchesApi, messagesApi } from "../api/client";
-import { Avatar, Button, EmptyState, Input, Loader } from "../components/UI";
+import { Avatar, EmptyState, Loader } from "../components/UI";
 import { formatDateTime, getDisplayName } from "../utils/format";
+
+import "./chat.css";
 
 function normalizeMessages(data) {
   if (Array.isArray(data)) return data;
@@ -18,8 +32,22 @@ function normalizeMatches(data) {
   return [];
 }
 
+function formatDay(date) {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function isSameDay(a, b) {
+  return new Date(a).toDateString() === new Date(b).toDateString();
+}
+
 export default function ChatPage() {
   const { matchId } = useParams();
+  const navigate = useNavigate();
+
   const [messages, setMessages] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +56,8 @@ export default function ChatPage() {
   const [error, setError] = useState("");
   const [showTyping, setShowTyping] = useState(false);
 
-  const intervalRef = useRef(null);
   const threadRef = useRef(null);
+  const intervalRef = useRef(null);
   const prevLastIdRef = useRef(null);
   const audioRef = useRef(null);
 
@@ -42,35 +70,31 @@ export default function ChatPage() {
   const otherUser =
     match?.user || match?.matchedUser || match?.profile || match;
 
-  // 🔊 init sound
   useEffect(() => {
     audioRef.current = new Audio("/message.mp3");
   }, []);
 
   const load = async () => {
     setLoading(true);
-    setError("");
+
     try {
       const [messagesData, matchesData] = await Promise.all([
         messagesApi.list(matchId),
         matchesApi.list(),
       ]);
+
       const msgs = normalizeMessages(messagesData);
+
       setMessages(msgs);
 
-      // set initial last id
       const last =
         msgs[msgs.length - 1]?.messageId || msgs[msgs.length - 1]?.id;
+
       prevLastIdRef.current = last;
 
       setMatches(normalizeMatches(matchesData));
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Could not load chat";
-      setError(msg);
+      setError("Could not load chat");
     } finally {
       setLoading(false);
     }
@@ -79,6 +103,7 @@ export default function ChatPage() {
   const pollMessages = async () => {
     try {
       const data = await messagesApi.list(matchId);
+
       const nextMessages = normalizeMessages(data);
 
       const lastNew =
@@ -97,16 +122,14 @@ export default function ChatPage() {
         const isIncoming = mineId ? String(sender) === String(mineId) : false;
 
         if (isIncoming) {
-          // 🔔 play sound
           audioRef.current?.play().catch(() => {});
 
-          // 💬 show typing
           setShowTyping(true);
 
           setTimeout(() => {
             setMessages(nextMessages);
             setShowTyping(false);
-          }, 700);
+          }, 650);
         } else {
           setMessages(nextMessages);
         }
@@ -114,7 +137,7 @@ export default function ChatPage() {
         prevLastIdRef.current = lastNew;
       }
     } catch (err) {
-      console.error("Polling error:", err);
+      console.error(err);
     }
   };
 
@@ -124,51 +147,46 @@ export default function ChatPage() {
 
   useEffect(() => {
     intervalRef.current = setInterval(pollMessages, 1000);
+
     return () => clearInterval(intervalRef.current);
   }, [matchId]);
 
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
-        clearInterval(intervalRef.current);
-      } else {
-        pollMessages();
-        intervalRef.current = setInterval(pollMessages, 1000);
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibility);
-  }, [matchId]);
-
-  // smooth scroll
-  useEffect(() => {
     const el = threadRef.current;
+
     if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, showTyping]);
 
   const handleSend = async (e) => {
     e.preventDefault();
+
     const text = content.trim();
+
     if (!text) return;
 
     setSending(true);
-    setError("");
 
     const tempMsg = {
       messageId: Date.now(),
       content: text,
       sendAt: new Date().toISOString(),
-      senderId: "me",
+      senderId: localStorage.peach_user_id,
     };
 
     setMessages((prev) => [...prev, tempMsg]);
+
     setContent("");
 
     try {
-      await messagesApi.send({ matchId, content: text });
+      await messagesApi.send({
+        matchId,
+        content: text,
+      });
     } catch (err) {
       setError("Message failed");
     } finally {
@@ -178,92 +196,196 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="page-card">
+      <div className="chat-loading">
         <Loader label="Opening conversation" />
       </div>
     );
   }
 
   return (
-    <div
-      className="chat-page"
-      style={{
-        height: "100%",
-        windth: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <section
-        className="chat-panel"
-        style={{ flex: 1, display: "flex", flexDirection: "column" }}
-      >
-        <div className="chat-head">
-          <Avatar name={getDisplayName(otherUser?.otherUser || otherUser)} />
-          <div>
-            <strong>{getDisplayName(otherUser?.otherUser || otherUser)}</strong>
-            <span>{otherUser?.otherUser?.location || "Chatting now"}</span>
-          </div>
-        </div>
+    <div className="modern-chat-page">
+      <div className="modern-chat-shell">
+        <div className="modern-chat-sidebar-glow" />
 
-        {error && <div className="form-error">{error}</div>}
+        <div className="modern-chat-layout">
+          <aside className="modern-chat-leftbar">
+            <button
+              className="modern-chat-logo active"
+              onClick={() => navigate("/app/feed")}
+            >
+              🍑
+            </button>
 
-        <div
-          ref={threadRef}
-          className="chat-thread"
-          style={{ flex: 1, overflowY: "auto", padding: "12px" }}
-        >
-          {!messages.length ? (
-            <EmptyState
-              title="No messages yet"
-              description="Say hello to start the conversation."
-            />
-          ) : (
-            messages.map((msg, i) => {
-              const sender = msg.senderId || msg.sender || msg.fromUserId;
-              const mineId = otherUser?.otherUser?.userId || otherUser?.userId;
+            <button onClick={() => navigate("/app/feed")}>✦</button>
 
-              const isMine = mineId ? String(sender) !== String(mineId) : true;
+            <button onClick={() => navigate("/app/matches")}>♡</button>
 
-              return (
-                <div
-                  key={i}
-                  className={`bubble-row ${isMine ? "mine" : "theirs"}`}
-                >
-                  <div className="bubble">
-                    <p>{msg.content}</p>
-                    <span>
-                      {formatDateTime(
-                        msg.sendAt || msg.sentAt || msg.createdAt
-                      )}
-                    </span>
+            <button className="active">💬</button>
+
+            <button onClick={() => navigate("/app/profile")}>◡̈</button>
+          </aside>
+
+          <section className="modern-chat-main">
+            <header className="modern-chat-header">
+              <div className="modern-chat-header-left">
+                <button className="icon-btn ghost" onClick={() => navigate(-1)}>
+                  <ArrowLeft size={22} />
+                </button>
+
+                <Avatar
+                  name={getDisplayName(otherUser?.otherUser || otherUser)}
+                />
+
+                <div className="modern-chat-user">
+                  <h2>{getDisplayName(otherUser?.otherUser || otherUser)}</h2>
+
+                  <p>
+                    {otherUser?.otherUser?.location ||
+                      otherUser?.location ||
+                      "Online"}
+                  </p>
+                </div>
+
+                <span className="online-dot" />
+              </div>
+
+              <div className="modern-chat-header-actions">
+                <button className="icon-btn">
+                  <Phone size={18} />
+                </button>
+
+                <button className="icon-btn">
+                  <Video size={18} />
+                </button>
+
+                <button className="icon-btn">
+                  <MoreHorizontal size={18} />
+                </button>
+              </div>
+            </header>
+
+            {error ? <div className="chat-error-banner">{error}</div> : null}
+
+            <div ref={threadRef} className="modern-chat-thread">
+              <div className="chat-thread-glow" />
+
+              {!messages.length ? (
+                <EmptyState
+                  title="No messages yet"
+                  description="Start the conversation ✨"
+                />
+              ) : (
+                messages.map((msg, i) => {
+                  const sender = msg.senderId || msg.sender || msg.fromUserId;
+
+                  const mineId =
+                    otherUser?.otherUser?.userId || otherUser?.userId;
+
+                  const isMine = !(mineId
+                    ? String(sender) !== String(mineId)
+                    : true);
+
+                  const previous = messages[i - 1];
+
+                  const showDate =
+                    !previous ||
+                    !isSameDay(
+                      previous.sendAt || previous.sentAt || previous.createdAt,
+                      msg.sendAt || msg.sentAt || msg.createdAt
+                    );
+
+                  return (
+                    <React.Fragment key={i}>
+                      {showDate ? (
+                        <div className="chat-day-divider">
+                          <span>
+                            {formatDay(
+                              msg.sendAt || msg.sentAt || msg.createdAt
+                            )}
+                          </span>
+                        </div>
+                      ) : null}
+
+                      <div
+                        className={`modern-message-row ${
+                          isMine ? "mine" : "theirs"
+                        }`}
+                      >
+                        {!isMine && (
+                          <Avatar
+                            name={getDisplayName(
+                              otherUser?.otherUser || otherUser
+                            )}
+                          />
+                        )}
+
+                        <div
+                          className={`modern-bubble ${
+                            isMine ? "mine" : "theirs"
+                          }`}
+                        >
+                          <p>{msg.content}</p>
+
+                          <div className="modern-bubble-meta">
+                            <span>
+                              {formatDateTime(
+                                msg.sendAt || msg.sentAt || msg.createdAt
+                              )}
+                            </span>
+
+                            {isMine ? <CheckCheck size={15} /> : null}
+                          </div>
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  );
+                })
+              )}
+
+              {showTyping ? (
+                <div className="modern-message-row theirs">
+                  <Avatar
+                    name={getDisplayName(otherUser?.otherUser || otherUser)}
+                  />
+
+                  <div className="typing-bubble">
+                    <span />
+                    <span />
+                    <span />
                   </div>
                 </div>
-              );
-            })
-          )}
-
-          {/* 💬 typing indicator */}
-          {showTyping && (
-            <div className="bubble-row theirs">
-              <div className="bubble" style={{ opacity: 0.6 }}>
-                typing...
-              </div>
+              ) : null}
             </div>
-          )}
-        </div>
 
-        <form className="chat-compose" onSubmit={handleSend}>
-          <Input
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write a message…"
-          />
-          <Button type="submit" disabled={sending}>
-            {sending ? "Sending…" : "Send"}
-          </Button>
-        </form>
-      </section>
+            <form className="modern-chat-compose" onSubmit={handleSend}>
+              <button type="button" className="compose-side-btn">
+                <Paperclip size={20} />
+              </button>
+
+              <input
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Write a message..."
+                className="modern-compose-input"
+              />
+
+              <div className="compose-actions">
+                <button type="button" className="compose-icon-btn">
+                  <Smile size={20} />
+                </button>
+
+                <button type="button" className="compose-icon-btn">
+                  <Mic size={20} />
+                </button>
+
+                <button type="submit" disabled={sending} className="send-btn">
+                  <SendHorizontal size={22} />
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
