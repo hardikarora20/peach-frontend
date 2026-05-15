@@ -130,6 +130,21 @@ function MatchModal({ profile, matchId, onClose, onViewMatches }) {
 
   return (
     <div className="match-modal-backdrop" role="dialog" aria-modal="true">
+      <div className="match-heartscape" aria-hidden="true">
+        <span className="match-heart match-heart--1" />
+        <span className="match-heart match-heart--2" />
+        <span className="match-heart match-heart--3" />
+        <span className="match-heart match-heart--4" />
+        <span className="match-heart match-heart--5" />
+
+        <span className="match-sparkle match-sparkle--1">✦</span>
+        <span className="match-sparkle match-sparkle--2">✦</span>
+        <span className="match-sparkle match-sparkle--3">✦</span>
+        <span className="match-sparkle match-sparkle--4">✦</span>
+        <span className="match-sparkle match-sparkle--5">✦</span>
+        <span className="match-sparkle match-sparkle--6">✦</span>
+      </div>
+
       <div className="match-modal">
         <button
           type="button"
@@ -152,10 +167,10 @@ function MatchModal({ profile, matchId, onClose, onViewMatches }) {
           This match is now in your Matches tab. You can open it there and start
           chatting when you are ready.
         </p>
-
+        {/* 
         {hasText(matchId) ? (
           <div className="match-modal__meta">Match ID: {matchId}</div>
-        ) : null}
+        ) : null} */}
 
         <div className="match-modal__actions">
           <button

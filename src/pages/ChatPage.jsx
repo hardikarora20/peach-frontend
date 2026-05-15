@@ -208,23 +208,6 @@ export default function ChatPage() {
         <div className="modern-chat-sidebar-glow" />
 
         <div className="modern-chat-layout">
-          <aside className="modern-chat-leftbar">
-            <button
-              className="modern-chat-logo active"
-              onClick={() => navigate("/app/feed")}
-            >
-              🍑
-            </button>
-
-            <button onClick={() => navigate("/app/feed")}>✦</button>
-
-            <button onClick={() => navigate("/app/matches")}>♡</button>
-
-            <button className="active">💬</button>
-
-            <button onClick={() => navigate("/app/profile")}>◡̈</button>
-          </aside>
-
           <section className="modern-chat-main">
             <header className="modern-chat-header">
               <div className="modern-chat-header-left">

@@ -1,78 +1,61 @@
 import React from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import {
-  Home,
-  CircleOff,
-  Heart,
-  MessageCircle,
-  UserRound,
-  Users,
-} from "lucide-react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Avatar } from "./UI";
+import { Home, MessageCircle, Users, UserRound } from "lucide-react";
 
 const navItems = [
-  { to: "/app/feed", label: "Feed", icon: Home, end: true },
-  { to: "/app/conversations", label: "Conversations", icon: MessageCircle },
-  { to: "/app/matches", label: "Matches", icon: Users },
-  { to: "/app/profile", label: "Profile", icon: UserRound },
+  { to: "/app/feed", label: "Feed" },
+  { to: "/app/conversations", label: "Conversations" },
+  { to: "/app/matches", label: "Matches" },
+  { to: "/app/profile", label: "Profile" },
+  // { to: "/app/profile2", label: "ProfileTemp" },
 ];
 
 export function AppShell({ children }) {
-  const { profile } = useAuth();
+  const { profile, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
   const title = location.pathname.includes("/feed")
     ? "Discover"
-    : location.pathname.includes("/conversations") ||
-      location.pathname.includes("/messages")
-    ? "Conversations"
     : location.pathname.includes("/matches")
     ? "Matches"
-    : location.pathname.includes("/editprofile")
-    ? "Edit profile"
+    : location.pathname.includes("/chat")
+    ? "Conversation"
     : "Profile";
 
-  const dockItems = [
-    { to: "/app/feed", label: "Feed", icon: Home, end: true, brand: true },
-    { to: "/app/conversations", label: "Explore", icon: CircleOff },
-    { to: "/app/matches", label: "Matches", icon: Heart },
-    { to: "/app/conversations", label: "Chat", icon: MessageCircle },
+  const navItems = [
+    { to: "/app/feed", label: "Feed", icon: Home, end: true },
+    { to: "/app/conversations", label: "Conversations", icon: MessageCircle },
+    { to: "/app/matches", label: "Matches", icon: Users },
     { to: "/app/profile", label: "Profile", icon: UserRound },
   ];
 
   return (
     <div className="app-shell">
-      <main className="main-content">
-        {/* <header className="topbar">
-          <div>
-            <span className="eyebrow">Peach</span>
-            <h1>{title}</h1>
-          </div>
-
-          <div className="topbar-profile">
-            <Avatar name={profile?.name || "P"} />
-            <div className="topbar-profile-text">
-              <strong>{profile?.name || "Guest"}</strong>
-              <span>{profile?.gender || "No profile yet"}</span>
-            </div>
-          </div>
-        </header> */}
-
-        <div className="app-stage">{children}</div>
-      </main>
-
-      <nav className="peach-dock" aria-label="Primary navigation">
-        <Link
-          to="/app/feed"
-          className="peach-dock__brand"
-          aria-label="Go to feed"
-        >
-          <span className="peach-dock__brand-icon">🍑</span>
+      <aside className="desktop-sidebar">
+        <Link to="/app/feed" className="dock-brand" aria-label="Go to feed">
+          <span className="dock-brand__mark">🍑</span>
+          {/* <span className="dock-brand__text">Peach</span> */}
         </Link>
 
-        <div className="peach-dock__items">
-          {dockItems.slice(1).map((item) => {
+        {/* <nav className="side-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `side-link ${isActive ? "active" : ""}`.trim()
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav> */}
+
+        <div className="dock-links">
+          {navItems.slice(1).map((item) => {
             const Icon = item.icon;
 
             return (
@@ -81,18 +64,36 @@ export function AppShell({ children }) {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `peach-dock__item ${isActive ? "is-active" : ""}`.trim()
+                  `dock-link ${isActive ? "active" : ""}`.trim()
                 }
+                aria-label={item.label}
               >
-                <span className="peach-dock__icon">
-                  <Icon size={20} />
+                <span className="dock-link__icon">
+                  <Icon size={18} />
                 </span>
-
-                <span className="peach-dock__label">{item.label}</span>
+                {/* <span className="dock-link__label">{item.label}</span> */}
               </NavLink>
             );
           })}
         </div>
+      </aside>
+
+      <main className="main-content">
+        <div className="app-stage">{children}</div>
+      </main>
+
+      <nav className="mobile-nav">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `mobile-nav-item ${isActive ? "active" : ""}`.trim()
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );
