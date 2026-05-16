@@ -195,7 +195,7 @@ export default function MatchesPage() {
         throw new Error("Profile id not found");
       }
 
-      navigate(`/app/profile/${userId}`);
+      navigate(`/app/profile/${profileId}`);
     } catch (err) {
       setError(err?.message || "Could not open profile");
     } finally {

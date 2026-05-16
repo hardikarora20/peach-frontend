@@ -291,10 +291,7 @@ export default function ChatPage() {
                       onClick={() => {
                         setShowMenu(false);
                         console.log(otherUser.otherUser);
-                        const profileId =
-                          otherUser?.otherUser.profileId ||
-                          otherUser?.id ||
-                          otherUser?._id;
+                        const profileId = otherUser?.otherUser.profileId;
 
                         navigate(`/app/profile/${profileId}`);
                       }}
