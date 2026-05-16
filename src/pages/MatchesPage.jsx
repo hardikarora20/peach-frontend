@@ -135,6 +135,7 @@ export default function MatchesPage() {
   }, []);
 
   const cards = useMemo(() => {
+    console.log(matches);
     return matches
       .map((match) => {
         const user = getOtherUser(match);
@@ -181,6 +182,8 @@ export default function MatchesPage() {
   };
 
   const handleViewProfile = async (userId, fallbackProfileId = "") => {
+    // console.log(userId);
+    // console.log(profileId);
     try {
       setOpeningProfileId(userId || fallbackProfileId || "loading");
       const profileId = await resolveProfileIdByUserId(
@@ -192,7 +195,7 @@ export default function MatchesPage() {
         throw new Error("Profile id not found");
       }
 
-      navigate(`/app/profile/${profileId}`);
+      navigate(`/app/profile/${userId}`);
     } catch (err) {
       setError(err?.message || "Could not open profile");
     } finally {

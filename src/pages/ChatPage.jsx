@@ -5,11 +5,12 @@ import {
   MoreHorizontal,
   Phone,
   Video,
-  Smile,
   Mic,
   Paperclip,
   SendHorizontal,
   CheckCheck,
+  Smile,
+  User,
 } from "lucide-react";
 
 import { matchesApi, messagesApi } from "../api/client";
@@ -23,6 +24,11 @@ function normalizeMessages(data) {
   if (Array.isArray(data?.messages)) return data.messages;
   if (Array.isArray(data?.data)) return data.data;
   return [];
+}
+
+function getMatchIcon(otherUser) {
+  if (otherUser.images != null) return otherUser.images[0];
+  return null;
 }
 
 function normalizeMatches(data) {
@@ -48,6 +54,9 @@ export default function ChatPage() {
   const { matchId } = useParams();
   const navigate = useNavigate();
 
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+
   const [messages, setMessages] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +69,25 @@ export default function ChatPage() {
   const intervalRef = useRef(null);
   const prevLastIdRef = useRef(null);
   const audioRef = useRef(null);
+
+  const QUICK_EMOJIS = ["❤️", "😂", "🥺", "😭", "✨"];
+
+  const addEmoji = (emoji) => {
+    setContent((prev) => `${prev}${emoji}`);
+  };
+
+  useEffect(() => {
+    const closeMenus = () => {
+      setShowEmojiPicker(false);
+      setShowMenu(false);
+    };
+
+    window.addEventListener("click", closeMenus);
+
+    return () => {
+      window.removeEventListener("click", closeMenus);
+    };
+  }, []);
 
   const match = useMemo(() => {
     return matches.find(
@@ -114,11 +142,8 @@ export default function ChatPage() {
 
       if (lastNew && lastNew !== lastPrev) {
         const lastMsg = nextMessages[nextMessages.length - 1];
-
         const sender = lastMsg.senderId || lastMsg.sender || lastMsg.fromUserId;
-
         const mineId = otherUser?.otherUser?.userId || otherUser?.userId;
-
         const isIncoming = mineId ? String(sender) === String(mineId) : false;
 
         if (isIncoming) {
@@ -196,8 +221,10 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="chat-loading">
-        <Loader label="Opening conversation" />
+      <div className="centered-loader">
+        <div className="chat-loading">
+          <Loader label="Opening conversation" />
+        </div>
       </div>
     );
   }
@@ -214,10 +241,19 @@ export default function ChatPage() {
                 <button className="icon-btn ghost" onClick={() => navigate(-1)}>
                   <ArrowLeft size={22} />
                 </button>
-
-                <Avatar
-                  name={getDisplayName(otherUser?.otherUser || otherUser)}
-                />
+                {/* working */}
+                {/* {console.log(getMatchIcon(otherUser.otherUser))} */}
+                {getMatchIcon(otherUser.otherUser) == null ? (
+                  <Avatar
+                    name={getDisplayName(otherUser?.otherUser || otherUser)}
+                  />
+                ) : (
+                  <img
+                    className="avatar"
+                    src={getMatchIcon(otherUser.otherUser)}
+                    alt={"Match"}
+                  />
+                )}
 
                 <div className="modern-chat-user">
                   <h2>{getDisplayName(otherUser?.otherUser || otherUser)}</h2>
@@ -229,21 +265,45 @@ export default function ChatPage() {
                   </p>
                 </div>
 
-                <span className="online-dot" />
+                {/* <span className="online-dot" /> */}
               </div>
 
-              <div className="modern-chat-header-actions">
-                <button className="icon-btn">
-                  <Phone size={18} />
+              <div
+                className="chat-menu-wrap"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  className="chat-icon-btn"
+                  onClick={() => {
+                    setShowMenu((prev) => !prev);
+                    setShowEmojiPicker(false);
+                  }}
+                >
+                  <MoreHorizontal size={20} />
                 </button>
 
-                <button className="icon-btn">
-                  <Video size={18} />
-                </button>
+                {showMenu && (
+                  <div className="chat-menu-dropdown">
+                    <button
+                      type="button"
+                      className="chat-menu-item"
+                      onClick={() => {
+                        setShowMenu(false);
+                        console.log(otherUser.otherUser);
+                        const profileId =
+                          otherUser?.otherUser.profileId ||
+                          otherUser?.id ||
+                          otherUser?._id;
 
-                <button className="icon-btn">
-                  <MoreHorizontal size={18} />
-                </button>
+                        navigate(`/app/profile/${profileId}`);
+                      }}
+                    >
+                      <User size={16} />
+                      <span>View profile</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </header>
 
@@ -263,7 +323,7 @@ export default function ChatPage() {
 
                   const mineId =
                     otherUser?.otherUser?.userId || otherUser?.userId;
-
+                  const matchIcon = getMatchIcon(otherUser.otherUser);
                   const isMine = !(mineId
                     ? String(sender) !== String(mineId)
                     : true);
@@ -294,13 +354,20 @@ export default function ChatPage() {
                           isMine ? "mine" : "theirs"
                         }`}
                       >
-                        {!isMine && (
-                          <Avatar
-                            name={getDisplayName(
-                              otherUser?.otherUser || otherUser
-                            )}
-                          />
-                        )}
+                        {!isMine &&
+                          (getMatchIcon(otherUser.otherUser) == null ? (
+                            <Avatar
+                              name={getDisplayName(
+                                otherUser?.otherUser || otherUser
+                              )}
+                            />
+                          ) : (
+                            <img
+                              className="avatar"
+                              src={getMatchIcon(otherUser.otherUser)}
+                              alt={"Match"}
+                            />
+                          ))}
 
                         <div
                           className={`modern-bubble ${
@@ -341,9 +408,9 @@ export default function ChatPage() {
             </div>
 
             <form className="modern-chat-compose" onSubmit={handleSend}>
-              <button type="button" className="compose-side-btn">
+              {/* <button type="button" className="compose-side-btn">
                 <Paperclip size={20} />
-              </button>
+              </button> */}
 
               <input
                 value={content}
@@ -353,13 +420,40 @@ export default function ChatPage() {
               />
 
               <div className="compose-actions">
-                <button type="button" className="compose-icon-btn">
-                  <Smile size={20} />
-                </button>
+                <div
+                  className="chat-emoji-wrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className="chat-compose-icon"
+                    onClick={() => {
+                      setShowEmojiPicker((prev) => !prev);
+                      setShowMenu(false);
+                    }}
+                  >
+                    <Smile size={20} />
+                  </button>
 
-                <button type="button" className="compose-icon-btn">
+                  {showEmojiPicker && (
+                    <div className="emoji-picker-pop">
+                      {QUICK_EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          className="emoji-pop-btn"
+                          onClick={() => addEmoji(emoji)}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* <button type="button" className="compose-icon-btn">
                   <Mic size={20} />
-                </button>
+                </button> */}
 
                 <button type="submit" disabled={sending} className="send-btn">
                   <SendHorizontal size={22} />

@@ -17,7 +17,7 @@
 
 .matches-shell {
   width: 100%;
-  max-width: 1180px;
+  /* max-width: 1180px; */
   margin: 0 auto;
 }
 
@@ -91,6 +91,8 @@
 }
 
 .matches-loader {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;

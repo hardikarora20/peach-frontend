@@ -500,11 +500,19 @@ select {
 .preview-avatar,
 .feed-photo-mark,
 .empty-icon {
-  width: 48px;
-  height: 48px;
+  width: fit-content;
+  height: fit-content;
   flex: 0 0 auto;
   font-weight: 800;
   color: var(--text);
+}
+
+img.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  transform: scale(1.2);
 }
 
 .topbar {
@@ -719,6 +727,14 @@ select {
 .match-arrow {
   font-size: 2rem;
   color: var(--primary);
+}
+
+.centered-loader {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chat-page {
