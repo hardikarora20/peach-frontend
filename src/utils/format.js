@@ -8,6 +8,15 @@ export function formatDateTime(value) {
   }).format(date);
 }
 
+export function formatDateTimeShowOnlyTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(undefined, {
+    timeStyle: "short",
+  }).format(date);
+}
+
 export function initials(name = "") {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "P";

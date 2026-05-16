@@ -53,7 +53,7 @@ export const matchesApi = {
 };
 
 export const messagesApi = {
-  list: (matchId) => api.get(`/messages/${matchId}`).then(unwrap),
+  list: (matchId) => api.get(`/messages/${matchId}?markRead=true`).then(unwrap),
   send: ({ matchId, content }) =>
     api.post("/messages", { matchId, content }).then(unwrap),
 };

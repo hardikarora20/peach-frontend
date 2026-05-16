@@ -7,6 +7,7 @@ import {
   Users,
   Clock3,
   MapPin,
+  CircleDot,
   Heart,
 } from "lucide-react";
 
@@ -64,8 +65,13 @@ function getMatchedAt(match) {
   return match?.matchedAt || match?.createdAt || match?.updatedAt || "";
 }
 
+function getLastMessageAt(match) {
+  return match?.lastMessageAt || match?.lastMessage?.sentAt || "";
+}
+
 function getPreviewText(other, match) {
-  const directPreview =
+  const preview =
+    match?.lastMessagePreview ||
     match?.lastMessage?.content ||
     match?.lastMessage?.text ||
     match?.latestMessage?.content ||
@@ -73,10 +79,14 @@ function getPreviewText(other, match) {
     match?.message ||
     match?.preview;
 
-  if (hasText(directPreview)) return directPreview;
-
+  if (hasText(preview)) return preview;
   if (hasText(other?.bio)) return other.bio;
   return "Tap to open chat";
+}
+
+function getUnreadCount(match) {
+  const count = Number(match?.unreadCount || 0);
+  return Number.isFinite(count) && count > 0 ? count : 0;
 }
 
 function getInterestList(other) {
@@ -134,6 +144,8 @@ export default function Conversations() {
           preview: getPreviewText(other, match),
           interests: getInterestList(other),
           userIcon,
+          lastMessageAt: getLastMessageAt(match),
+          unreadCount: getUnreadCount(match),
         };
       })
       .sort((a, b) => {
@@ -143,6 +155,7 @@ export default function Conversations() {
       });
   }, [matches]);
 
+  const totalUnread = cards.reduce((sum, item) => sum + item.unreadCount, 0);
   const recentCount = cards.length;
   const activeCount = cards.filter((item) => hasText(item.matchedAt)).length;
 
@@ -200,11 +213,18 @@ export default function Conversations() {
               </div>
             </div>
 
-            <div className="conversations-stat">
+            {/* <div className="conversations-stat">
               <Sparkles size={16} />
               <div>
                 <strong>{activeCount}</strong>
                 <span>Recent chats</span>
+              </div>
+            </div> */}
+            <div className="conversations-stat conversations-stat--accent">
+              <CircleDot size={16} />
+              <div>
+                <strong>{totalUnread}</strong>
+                <span>Unread messages</span>
               </div>
             </div>
           </div>
@@ -223,6 +243,8 @@ export default function Conversations() {
             const location = other?.location || "Nearby";
             const matchedAt = item.matchedAt;
             const matchIcon = item.userIcon;
+            const unreadCount = item.unreadCount;
+            const hasUnread = unreadCount > 0;
             console.log(matchIcon);
             return (
               <Link
@@ -231,6 +253,9 @@ export default function Conversations() {
                 className="conversation-card"
               >
                 <div className="conversation-card__left">
+                  {hasUnread ? (
+                    <span className="conversation-card__dot" />
+                  ) : null}
                   {matchIcon == null ? (
                     <Avatar name={displayName || "U"} />
                   ) : (
@@ -256,15 +281,33 @@ export default function Conversations() {
                       </div>
                     </div>
 
-                    {hasText(matchedAt) ? (
-                      <span className="conversation-card__time">
-                        <Clock3 size={13} />
-                        Peached {formatDateTime(matchedAt)}
-                      </span>
-                    ) : null}
-                  </div>
+                    <div className="conversation-card__top-right">
+                      {hasUnread ? (
+                        <span className="conversation-card__unread">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      ) : null}
 
-                  <p className="conversation-card__preview">{item.preview}</p>
+                      {hasText(item.lastMessageAt) ? (
+                        <span className="conversation-card__time">
+                          <Clock3 size={13} />
+                          {formatDateTime(item.lastMessageAt)}
+                        </span>
+                      ) : (
+                        <span className="conversation-card__time">
+                          <Clock3 size={13} />
+                          Peached {formatDateTime(matchedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="conversation-card__preview">
+                    {hasUnread ? (
+                      <b>{item.preview}</b>
+                    ) : (
+                      <span>{item.preview}</span>
+                    )}
+                  </p>
 
                   {/* {interests.length > 0 ? (
                     <div className="conversation-card__chips">

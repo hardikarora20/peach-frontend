@@ -15,7 +15,11 @@ import {
 
 import { matchesApi, messagesApi } from "../api/client";
 import { Avatar, EmptyState, Loader } from "../components/UI";
-import { formatDateTime, getDisplayName } from "../utils/format";
+import {
+  formatDateTime,
+  getDisplayName,
+  formatDateTimeShowOnlyTime,
+} from "../utils/format";
 
 import "./chat.css";
 
@@ -143,8 +147,10 @@ export default function ChatPage() {
       if (lastNew && lastNew !== lastPrev) {
         const lastMsg = nextMessages[nextMessages.length - 1];
         const sender = lastMsg.senderId || lastMsg.sender || lastMsg.fromUserId;
-        const mineId = otherUser?.otherUser?.userId || otherUser?.userId;
-        const isIncoming = mineId ? String(sender) === String(mineId) : false;
+        const otherUserId = otherUser?.otherUser?.userId || otherUser?.userId;
+        const isIncoming = otherUserId
+          ? String(sender) === String(otherUserId)
+          : false;
 
         if (isIncoming) {
           audioRef.current?.play().catch(() => {});
@@ -291,7 +297,10 @@ export default function ChatPage() {
                       onClick={() => {
                         setShowMenu(false);
                         console.log(otherUser.otherUser);
-                        const profileId = otherUser?.otherUser.profileId;
+                        const profileId =
+                          otherUser?.otherUser.profileId ||
+                          otherUser?.id ||
+                          otherUser?._id;
 
                         navigate(`/app/profile/${profileId}`);
                       }}
@@ -317,14 +326,11 @@ export default function ChatPage() {
               ) : (
                 messages.map((msg, i) => {
                   const sender = msg.senderId || msg.sender || msg.fromUserId;
-
-                  const mineId =
+                  const otherUserId =
                     otherUser?.otherUser?.userId || otherUser?.userId;
                   const matchIcon = getMatchIcon(otherUser.otherUser);
-                  const isMine = !(mineId
-                    ? String(sender) !== String(mineId)
-                    : true);
-
+                  const isMine =
+                    String(sender) !== String(otherUserId) ? true : false;
                   const previous = messages[i - 1];
 
                   const showDate =
@@ -375,7 +381,7 @@ export default function ChatPage() {
 
                           <div className="modern-bubble-meta">
                             <span>
-                              {formatDateTime(
+                              {formatDateTimeShowOnlyTime(
                                 msg.sendAt || msg.sentAt || msg.createdAt
                               )}
                             </span>
