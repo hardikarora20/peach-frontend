@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { LogOut } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -863,15 +864,28 @@ export default function OnboardingPage() {
               <p>Finish this once, then jump straight into the feed.</p>
             </div>
 
-            <div className="onboarding-stepper">
-              {steps.map((item, index) => (
-                <span
-                  key={item.title}
-                  className={`onboarding-stepper__dot ${
-                    index <= step ? "is-active" : ""
-                  }`}
-                />
-              ))}
+            <div className="onboarding-actions">
+              <button
+                className="profile-action-btn profile-action-btn--ghost"
+                onClick={() => {
+                  // logout();
+                  localStorage.clear();
+                  navigate("/auth", { replace: true });
+                }}
+              >
+                <LogOut size={16} />
+                Log out
+              </button>
+              <div className="onboarding-stepper">
+                {steps.map((item, index) => (
+                  <span
+                    key={item.title}
+                    className={`onboarding-stepper__dot ${
+                      index <= step ? "is-active" : ""
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </header>
 

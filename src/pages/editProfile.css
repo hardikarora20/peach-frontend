@@ -1,6 +1,6 @@
 .edit-profile-page {
   min-height: 100%;
-  padding: 24px;
+  padding: 24px 0px;
   background: radial-gradient(
       circle at top left,
       rgba(255, 186, 165, 0.18),
@@ -35,23 +35,32 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding: 0px 24px;
 }
 
 .edit-topbar {
   position: sticky;
-  top: 0;
+  top: -25px;
   z-index: 20;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 14px;
+  /* gap: 14px; */
   align-items: center;
-  padding: 12px 0 8px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 250, 247, 0.98),
-    rgba(255, 250, 247, 0.88)
-  );
-  backdrop-filter: blur(10px);
+  /* padding: 12px 0 8px; */
+  background: radial-gradient(
+      circle at top left,
+      rgba(255, 186, 165, 0.18),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(255, 220, 190, 0.14),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #fffaf7 0%, #fffdfc 100%);
+  /* backdrop-filter: blur(10px); */
+  padding: 20px 20px;
+  /* margin-top: 20px; */
 }
 
 .edit-back-btn,

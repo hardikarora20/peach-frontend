@@ -42,7 +42,7 @@ body,
 body {
   margin: 0;
   color: var(--text);
-  overflow: hidden;
+  overflow-y: auto;
   background: radial-gradient(
       circle at top left,
       rgba(255, 182, 107, 0.22),
@@ -54,6 +54,15 @@ body {
       transparent 28%
     ),
     linear-gradient(180deg, #fffaf7 0%, #fff4ef 100%);
+}
+
+body {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox, Safari 18.2+, Chromium 121+ */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Older Safari and Chromium */
 }
 
 :root {
@@ -547,6 +556,7 @@ img.avatar {
   justify-content: space-between;
   align-items: flex-start;
   flex-direction: column;
+  border-radius: 20px;
 }
 
 .app-stage {

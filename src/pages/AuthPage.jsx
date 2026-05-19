@@ -84,11 +84,13 @@ export default function AuthPage() {
       }
 
       await register(values.email.trim(), values.password);
-
       setSuccessMessage(
         "Account created successfully. Let’s build your profile."
       );
-      navigate("/app/onboarding", { replace: true });
+      await login(values.email.trim(), values.password);
+      setTimeout(() => {
+        navigate("/app/onboarding", { replace: true });
+      }, 1000);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -249,7 +251,10 @@ export default function AuthPage() {
 
             <Button type="submit" disabled={authLoading}>
               {authLoading ? (
-                <Loader label="Working" />
+                <span className="auth-submit__loading">
+                  <span className="auth-spinner" />
+                  {mode === "login" ? "Signing in…" : "Creating account…"}
+                </span>
               ) : mode === "login" ? (
                 <>
                   Log in <ArrowRight size={18} />

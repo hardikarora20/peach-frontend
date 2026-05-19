@@ -21,6 +21,15 @@
   color: rgba(23, 23, 23, 0.62);
 }
 
+.onboarding-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: space-around;
+  align-items: center;
+  gap: 16px;
+}
+
 .onboarding-stepper {
   display: flex;
   gap: 8px;
@@ -346,4 +355,10 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+.app-stage {
+  /* border: 2px solid #ffc9c0;
+  margin: 20px; */
+  /* onboarding css */
 }
