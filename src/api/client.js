@@ -39,7 +39,7 @@ export const authApi = {
 export const profileApi = {
   me: () => api.get("/profile/me").then(unwrap),
   saveMe: (payload) => api.put("/profile/me", payload).then(unwrap),
-  feed: () => api.get("/profile/feed").then(unwrap),
+  feed: (payload) => api.put("/profile/feed").then(unwrap),
   byId: (userId) => api.get(`/profile/${userId}`).then(unwrap),
 };
 

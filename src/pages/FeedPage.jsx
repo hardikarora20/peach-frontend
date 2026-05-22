@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Heart,
@@ -10,7 +10,6 @@ import {
   PartyPopper,
   ArrowRight,
 } from "lucide-react";
-import { profileApi } from "../api/client";
 import "./feed.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -63,8 +62,12 @@ function initials(name) {
     .toUpperCase();
 }
 
-function getId(profile) {
-  return String(profile?.profileId || "");
+function getProfileId(profile) {
+  return String(profile?.profileId || profile?.id || profile?.userId || "");
+}
+
+function getTargetUserId(profile) {
+  return profile?.userId || profile?.id || profile?.profileId || "";
 }
 
 function getImage(profile) {
@@ -96,6 +99,30 @@ function getVibeText(profile) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function requestCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Geolocation not supported"));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => reject(error),
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  });
 }
 
 function Bubble({ profile, slot, variant = 1 }) {
@@ -167,10 +194,6 @@ function MatchModal({ profile, matchId, onClose, onViewMatches }) {
           This match is now in your Matches tab. You can open it there and start
           chatting when you are ready.
         </p>
-        {/* 
-        {hasText(matchId) ? (
-          <div className="match-modal__meta">Match ID: {matchId}</div>
-        ) : null} */}
 
         <div className="match-modal__actions">
           <button
@@ -205,9 +228,11 @@ export default function FeedPage() {
   const [swipeState, setSwipeState] = useState(null);
   const [matchModal, setMatchModal] = useState(null);
 
+  const bootstrapOnceRef = useRef(false);
+
   const activeProfile = profiles[activeIndex] || null;
   const activeImage = getImage(activeProfile);
-  const activeProfileId = getId(activeProfile);
+  const activeProfileId = getProfileId(activeProfile);
   const vibeText = activeProfile ? getVibeText(activeProfile) : "";
 
   const ambientSlots = useMemo(
@@ -231,26 +256,66 @@ export default function FeedPage() {
   }, [profiles, activeIndex]);
 
   const loadFeed = async () => {
-    setLoading(true);
-    try {
-      const data = await profileApi.feed();
+    const token = localStorage.getItem("peach_token");
 
-      const nextProfiles = Array.isArray(data)
-        ? data
-        : data?.profiles || data?.data || [];
+    const coords = await requestCurrentLocation();
+    console.log("User coordinates:", coords.latitude, coords.longitude);
 
-      setProfiles(shuffle(nextProfiles));
-      setActiveIndex(0);
-    } catch (err) {
-      console.error("Feed load failed:", err);
-      setProfiles([]);
-    } finally {
+    const response = await fetch(`${API_BASE}/profile/feed`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        xCoordinate: coords.longitude,
+        yCoordinate: coords.latitude,
+        range: 50,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Could not load feed");
+    } else {
       setLoading(false);
     }
+
+    const nextProfiles = Array.isArray(data)
+      ? data
+      : data?.profiles || data?.data || [];
+
+    console.log(nextProfiles);
+
+    setProfiles(shuffle(nextProfiles));
+    setActiveIndex(0);
   };
 
   useEffect(() => {
-    loadFeed();
+    if (bootstrapOnceRef.current) return;
+    bootstrapOnceRef.current = true;
+
+    let mounted = true;
+
+    const bootstrapFeed = async () => {
+      setLoading(true);
+
+      try {
+        await loadFeed();
+      } catch (err) {
+        console.error("Feed load failed:", err);
+        if (mounted) setProfiles([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    bootstrapFeed();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const advanceToNext = (remaining) => {
@@ -271,10 +336,8 @@ export default function FeedPage() {
     setSwipeState({ action });
 
     try {
-      console.log(activeProfile);
-      // console.log(profileId);
       const result = await swipesApi.swipe({
-        targetUserId: activeProfile.userId,
+        targetUserId: getTargetUserId(activeProfile),
         action,
       });
 
@@ -311,24 +374,29 @@ export default function FeedPage() {
     );
   }
 
+  function formatDistance(distance) {
+    if (distance == null) return "";
+
+    const d = Number(distance);
+
+    if (d < 1) return "< 1 km";
+    if (d < 5) return "< 5 km";
+    if (d < 10) return "< 10 km";
+    if (d < 25) return "< 25 km";
+    if (d < 50) return "< 50 km";
+
+    return "> 50 km";
+  }
   return (
     <div className="feed-page">
       <div className="feed-shell">
         <header className="feed-hero">
-          {/* <div className="feed-hero__copy">
-            <div className="feed-kicker">
-              <span className="feed-kicker__icon">🍑</span>
-              <span>For you</span>
-            </div>
-            <h2>Thoughtfully matched, just for you</h2>
-            <p>Profiles nearby, surfaced in a calm card-first layout.</p>
-          </div> */}
-
           <button className="feed-icon-btn" type="button" aria-label="Filters">
             <SlidersHorizontal size={20} />
             <span>Filters</span>
           </button>
         </header>
+
         <section className="feed-stage">
           <div className="feed-stage__ring feed-stage__ring--1" />
           <div className="feed-stage__ring feed-stage__ring--2" />
@@ -337,7 +405,9 @@ export default function FeedPage() {
 
           {ambientProfiles.map((profile, index) => (
             <Bubble
-              key={getId(profile) || `${profile?.name || "bubble"}-${index}`}
+              key={
+                getProfileId(profile) || `${profile?.name || "bubble"}-${index}`
+              }
               profile={profile}
               slot={ambientSlots[index % ambientSlots.length]}
               variant={(index % 4) + 1}
@@ -400,11 +470,10 @@ export default function FeedPage() {
                     {initials(activeProfile?.name)}
                   </div>
                 )}
-
-                {activeProfile?.distance ? (
+                {activeProfile?.distance !== undefined ? (
                   <span className="distance-pill distance-pill--image">
                     <MapPin size={13} />
-                    {activeProfile.distance}
+                    {formatDistance(activeProfile.distance)}
                   </span>
                 ) : null}
               </button>
@@ -430,7 +499,6 @@ export default function FeedPage() {
 
                 {activeProfile.interests?.length ? (
                   <div className="focus-pills">
-                    {console.log(activeProfile.interests.slice(0, 4))}
                     {activeProfile.interests.slice(0, 4).map((item) => (
                       <span key={item} className="focus-pill">
                         {humanize(item)}
@@ -483,10 +551,6 @@ export default function FeedPage() {
             </div>
           )}
         </section>
-
-        {/* <div className="feed-hint">
-          <span>Swipe to like or pass</span>
-        </div> */}
       </div>
 
       {matchModal ? (

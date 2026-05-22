@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import CityPicker from "../components/CityPicker";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LogOut } from "lucide-react";
@@ -637,6 +638,8 @@ export default function OnboardingPage() {
       const data = await readJsonSafe(response);
       const profile = data?.data ?? data?.profile ?? data;
 
+      console.log(profile);
+
       setForm(profileToForm(profile));
 
       const rawPrompts = Array.isArray(profile?.profilePrompts)
@@ -740,6 +743,7 @@ export default function OnboardingPage() {
 
     for (let i = 0; i < maxAttempts; i += 1) {
       const exists = await checkProfileExists(token);
+      console.log(exists);
       if (exists) return true;
 
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -948,13 +952,22 @@ export default function OnboardingPage() {
                   onChange={(e) => updateField("gender", e.target.value)}
                   options={GENDER_OPTIONS}
                 />
-                <TextField
-                  label="Location"
-                  icon={<MapPin size={14} />}
-                  value={form.location}
-                  onChange={(e) => updateField("location", e.target.value)}
-                  placeholder="Mumbai"
-                />
+                <div className="edit-field edit-field--full">
+                  <span className="edit-field__label">
+                    <MapPin size={14} />
+                    <span>City</span>
+                  </span>
+
+                  <CityPicker
+                    value={form.location}
+                    onSelect={(city) => {
+                      updateField("location", city.label);
+
+                      updateField("latitude", city.latitude || null);
+                      updateField("longitude", city.longitude || null);
+                    }}
+                  />
+                </div>
                 <div className="edit-field edit-field--full">
                   <TextAreaField
                     label="Bio"
