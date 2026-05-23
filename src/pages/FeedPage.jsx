@@ -9,6 +9,7 @@ import {
   Sparkles,
   PartyPopper,
   ArrowRight,
+  RefreshCcw,
 } from "lucide-react";
 import "./feed.css";
 
@@ -125,6 +126,50 @@ function requestCurrentLocation() {
   });
 }
 
+function formatDistance(distance) {
+  if (distance == null || distance === "") return "";
+  const n = Number(distance);
+  if (Number.isNaN(n)) return String(distance);
+  return `${Math.round(n)} km away`;
+}
+
+function PeachLoader({ stage = "locating", errorMessage = "" }) {
+  const title =
+    stage === "locating" ? "Finding people near you" : "Loading nearby people";
+
+  const subtitle =
+    stage === "locating"
+      ? "We need your location to show the right matches."
+      : "Just a moment while we prepare your feed.";
+
+  return (
+    <div className="peach-loader-wrap" aria-label={title}>
+      <div className="peach-loader">
+        <div className="peach-loader__orbit peach-loader__orbit--1" />
+        <div className="peach-loader__orbit peach-loader__orbit--2" />
+        <div className="peach-loader__spark peach-loader__spark--1" />
+        <div className="peach-loader__spark peach-loader__spark--2" />
+        <div className="peach-loader__spark peach-loader__spark--3" />
+
+        <div className="peach-loader__peach">
+          <span className="peach-loader__leaf" />
+          <span className="peach-loader__shine" />
+          <span className="peach-loader__core">🍑</span>
+        </div>
+      </div>
+
+      <div className="peach-loader__text">
+        <strong>{title}</strong>
+        <span>{subtitle}</span>
+
+        {errorMessage ? (
+          <div className="peach-loader__error">{errorMessage}</div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function Bubble({ profile, slot, variant = 1 }) {
   const img = getImage(profile);
 
@@ -146,7 +191,7 @@ function Bubble({ profile, slot, variant = 1 }) {
       )}
 
       {hasText(profile?.distance) ? (
-        <span className="ambient-bubble__distance">{profile.distance}</span>
+        <span className="ambient-bubble__distance">{}</span>
       ) : null}
     </div>
   );
@@ -224,9 +269,14 @@ export default function FeedPage() {
   const [profiles, setProfiles] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState("locating");
+  const [loadingError, setLoadingError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [swipeState, setSwipeState] = useState(null);
   const [matchModal, setMatchModal] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
+  const [range, setRange] = useState(50);
 
   const bootstrapOnceRef = useRef(false);
 
@@ -258,8 +308,11 @@ export default function FeedPage() {
   const loadFeed = async () => {
     const token = localStorage.getItem("peach_token");
 
+    setLoadingStage("locating");
     const coords = await requestCurrentLocation();
     console.log("User coordinates:", coords.latitude, coords.longitude);
+
+    setLoadingStage("fetching");
 
     const response = await fetch(`${API_BASE}/profile/feed`, {
       method: "POST",
@@ -270,23 +323,19 @@ export default function FeedPage() {
       body: JSON.stringify({
         xCoordinate: coords.longitude,
         yCoordinate: coords.latitude,
-        range: 50,
+        range: range,
       }),
     });
 
     const data = await response.json().catch(() => ({}));
-
+    setLoading(false);
     if (!response.ok) {
       throw new Error(data?.message || "Could not load feed");
-    } else {
-      setLoading(false);
     }
 
     const nextProfiles = Array.isArray(data)
       ? data
       : data?.profiles || data?.data || [];
-
-    console.log(nextProfiles);
 
     setProfiles(shuffle(nextProfiles));
     setActiveIndex(0);
@@ -300,12 +349,31 @@ export default function FeedPage() {
 
     const bootstrapFeed = async () => {
       setLoading(true);
+      setLoadingError("");
 
       try {
         await loadFeed();
       } catch (err) {
         console.error("Feed load failed:", err);
-        if (mounted) setProfiles([]);
+
+        if (!mounted) return;
+
+        const msg =
+          err?.message || "Location access is required to find nearby matches.";
+
+        if (
+          msg.toLowerCase().includes("geolocation") ||
+          msg.toLowerCase().includes("permission") ||
+          msg.toLowerCase().includes("location")
+        ) {
+          setLoadingError(
+            "Location access is required to find matches nearby. Please enable location and try again."
+          );
+        } else {
+          setLoadingError(msg);
+        }
+
+        setProfiles([]);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -316,7 +384,12 @@ export default function FeedPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [retryKey]);
+
+  const handleRetry = () => {
+    bootstrapOnceRef.current = false;
+    setRetryKey((n) => n + 1);
+  };
 
   const advanceToNext = (remaining) => {
     if (!remaining.length) {
@@ -368,33 +441,91 @@ export default function FeedPage() {
     return (
       <div className="feed-page">
         <div className="feed-shell">
-          <div className="feed-loader">Loading nearby people…</div>
+          <PeachLoader stage={loadingStage} errorMessage={loadingError} />
         </div>
       </div>
     );
   }
 
-  function formatDistance(distance) {
-    if (distance == null) return "";
-
-    const d = Number(distance);
-
-    if (d < 1) return "< 1 km";
-    if (d < 5) return "< 5 km";
-    if (d < 10) return "< 10 km";
-    if (d < 25) return "< 25 km";
-    if (d < 50) return "< 50 km";
-
-    return "> 50 km";
+  if (loadingError && !profiles.length) {
+    return (
+      <div className="feed-page">
+        <div className="feed-shell">
+          <div className="feed-error-state">
+            <div className="feed-error-state__icon">🍑</div>
+            <h2>Location needed</h2>
+            <p>{loadingError}</p>
+            <button
+              type="button"
+              className="feed-error-state__btn"
+              onClick={handleRetry}
+            >
+              <RefreshCcw size={16} />
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
+
   return (
     <div className="feed-page">
       <div className="feed-shell">
         <header className="feed-hero">
-          <button className="feed-icon-btn" type="button" aria-label="Filters">
-            <SlidersHorizontal size={20} />
-            <span>Filters</span>
-          </button>
+          <div className="feed-filters-wrap">
+            <button
+              className="feed-icon-btn"
+              type="button"
+              aria-label="Filters"
+              onClick={() => setShowFilters((prev) => !prev)}
+            >
+              <SlidersHorizontal size={20} />
+              <span>Filters</span>
+            </button>
+
+            {showFilters && (
+              <div className="feed-filters-panel">
+                <div className="feed-filters-panel__top">
+                  <h4>Discovery Radius</h4>
+                  <span>{range} km</span>
+                </div>
+
+                <input
+                  type="range"
+                  min="5"
+                  max="200"
+                  step="5"
+                  value={range}
+                  onChange={(e) => setRange(Number(e.target.value))}
+                  className="feed-range-slider"
+                />
+
+                <div className="feed-range-labels">
+                  <span>5 km</span>
+                  <span>200 km</span>
+                </div>
+
+                <button
+                  className="feed-apply-btn"
+                  onClick={async () => {
+                    setShowFilters(false);
+                    setLoading(true);
+
+                    try {
+                      await loadFeed();
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
         <section className="feed-stage">
@@ -470,6 +601,7 @@ export default function FeedPage() {
                     {initials(activeProfile?.name)}
                   </div>
                 )}
+
                 {activeProfile?.distance !== undefined ? (
                   <span className="distance-pill distance-pill--image">
                     <MapPin size={13} />
