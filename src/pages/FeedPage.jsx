@@ -104,6 +104,31 @@ function sleep(ms) {
 
 function requestCurrentLocation() {
   return new Promise((resolve, reject) => {
+    const cached = localStorage.getItem("peach_last_location");
+
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+
+        const FIVE_MINUTES = 5 * 60 * 1000;
+
+        const isFresh = Date.now() - parsed.timestamp < FIVE_MINUTES;
+
+        if (isFresh && parsed.latitude && parsed.longitude) {
+          console.log("Using cached location");
+
+          resolve({
+            latitude: parsed.latitude,
+            longitude: parsed.longitude,
+          });
+
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to parse cached location");
+      }
+    }
+
     if (!navigator.geolocation) {
       reject(new Error("Geolocation not supported"));
       return;
@@ -111,16 +136,30 @@ function requestCurrentLocation() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        resolve({
+        const nextLocation = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        });
+        };
+
+        localStorage.setItem(
+          "peach_last_location",
+          JSON.stringify({
+            ...nextLocation,
+            timestamp: Date.now(),
+          })
+        );
+
+        console.log("Using fresh location");
+
+        resolve(nextLocation);
       },
-      (error) => reject(error),
+      (error) => {
+        reject(error);
+      },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        enableHighAccuracy: false,
+        timeout: 5000,
+        maximumAge: 60000,
       }
     );
   });
