@@ -107,7 +107,7 @@ export default function AuthPage() {
         <div className="auth-hero">
           <div className="auth-brand">
             <div className="auth-brand__mark">
-              <Sparkles size={20} />
+              <span>🍑</span>
             </div>
 
             <div>

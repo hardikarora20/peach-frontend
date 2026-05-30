@@ -470,15 +470,17 @@
 
 .feed-loader,
 .feed-empty {
-  width: min(980px, 92%);
-  min-height: 520px;
+  width: 100%;
+  height: 100%;
   margin: 0 auto;
   border-radius: 34px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.88);
   box-shadow: 0 28px 70px rgba(161, 128, 156, 0.12);
-  display: grid;
+  display: flex;
+  flex-direction: column;
   place-items: center;
+  justify-content: center;
   text-align: center;
   color: rgba(23, 32, 51, 0.68);
 }

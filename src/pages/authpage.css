@@ -38,14 +38,19 @@
 }
 
 .auth-brand__mark {
-  width: 54px;
-  height: 54px;
+  width: 60px;
+  height: 60px;
   border-radius: 18px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #ff9b84, #ff7da2);
+  background: linear-gradient(180deg, #ffe4e4, #ffa1b7);
+  box-shadow: 0 18px 30px rgba(255, 111, 145, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   color: white;
-  box-shadow: 0 14px 34px rgba(255, 125, 162, 0.24);
+}
+
+.auth-brand__mark span {
+  font-size: 30px;
 }
 
 .auth-brand__name {

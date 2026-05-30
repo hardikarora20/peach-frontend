@@ -771,7 +771,7 @@ export default function OnboardingPage() {
         age: form.age === "" ? null : Number(form.age),
         gender: form.gender,
         bio: form.bio.trim(),
-        location: form.location.trim(),
+        location: form.location,
         datingIntent: form.datingIntent,
         connectionPreference: form.connectionPreference,
         openToLongDistance: form.openToLongDistance,
@@ -799,6 +799,46 @@ export default function OnboardingPage() {
           }))
           .filter((item) => hasText(item.answer)),
       };
+
+      const isCompleteCoreProfile =
+        hasText(form.name) &&
+        form.age !== null &&
+        hasText(form.gender) &&
+        hasText(form.bio) &&
+        hasText(form.location);
+
+      console.log(form);
+      console.log(
+        form.name +
+          " " +
+          form.age +
+          " " +
+          form.gender +
+          " " +
+          form.bio +
+          " " +
+          form.location
+      );
+      console.log(isCompleteCoreProfile);
+
+      if (
+        !(
+          hasText(form.name) &&
+          form.age !== null &&
+          hasText(form.gender) &&
+          hasText(form.bio) &&
+          hasText(form.location)
+        )
+      ) {
+        setWarningMessage(
+          "Basic info is still necessary before continuing. Please complete the missing fields."
+        );
+        setSuccessMessage("");
+        setSaving(false);
+        return;
+      }
+
+      console.log("saving profile now");
 
       const response = await fetch(`${API_BASE}/profile/me`, {
         method: "PUT",
@@ -961,10 +1001,8 @@ export default function OnboardingPage() {
                   <CityPicker
                     value={form.location}
                     onSelect={(city) => {
-                      updateField("location", city.label);
-
-                      updateField("latitude", city.latitude || null);
-                      updateField("longitude", city.longitude || null);
+                      console.log("Selected city from CityPicker:", city);
+                      updateField("location", city);
                     }}
                   />
                 </div>

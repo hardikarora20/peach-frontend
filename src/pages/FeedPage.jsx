@@ -353,6 +353,8 @@ export default function FeedPage() {
 
     setLoadingStage("fetching");
 
+    const lastSavedRadius = localStorage.getItem("peach_saved_radius");
+    if (lastSavedRadius != null) setRange(lastSavedRadius);
     const response = await fetch(`${API_BASE}/profile/feed`, {
       method: "POST",
       headers: {
@@ -362,7 +364,7 @@ export default function FeedPage() {
       body: JSON.stringify({
         xCoordinate: coords.longitude,
         yCoordinate: coords.latitude,
-        range: range,
+        range: lastSavedRadius == null ? range : lastSavedRadius,
       }),
     });
 
@@ -536,7 +538,10 @@ export default function FeedPage() {
                   max="200"
                   step="5"
                   value={range}
-                  onChange={(e) => setRange(Number(e.target.value))}
+                  onChange={(e) => {
+                    setRange(Number(e.target.value));
+                    localStorage.setItem("peach_saved_radius", e.target.value);
+                  }}
                   className="feed-range-slider"
                 />
 
