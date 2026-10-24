@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-node_modules
-=======
 node_modules
 dist
 .env
 .DS_Store
->>>>>>> 8a08bf3 (updated ui)

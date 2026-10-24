@@ -1,39 +1,3 @@
-<<<<<<< HEAD
-export function formatDateTime(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-export function formatDateTimeShowOnlyTime(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return new Intl.DateTimeFormat(undefined, {
-    timeStyle: "short",
-  }).format(date);
-}
-
-export function initials(name = "") {
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "P";
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("");
-}
-
-export function getDisplayName(user = {}) {
-  return user.name || user.fullName || user.username || "Unknown";
-}
-
-export function getUserId(obj = {}) {
-  return obj.userId || obj.id || obj._id || obj.targetUserId || null;
-=======
 export function hasText(value) {
   if (value === null || value === undefined) return false;
   if (Array.isArray(value)) return value.length > 0;
@@ -128,5 +92,4 @@ export function formatDistance(distance) {
   if (Number.isNaN(n)) return String(distance);
   if (n < 1) return "Less than 1 km away";
   return `${Math.round(n)} km away`;
->>>>>>> 8a08bf3 (updated ui)
 }

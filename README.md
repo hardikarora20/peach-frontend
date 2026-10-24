@@ -1,29 +1,3 @@
-<<<<<<< HEAD
-# Peach Frontend
-
-Modern React frontend for the Peach dating app.
-
-## Setup
-
-```bash
-npm install
-cp .env.example .env
-npm run dev
-```
-
-Set `VITE_API_BASE_URL` to your backend URL.
-
-## Features
-
-- Login / register
-- Profile creation and edit
-- Swipe feed
-- Matches list
-- Chat screen
-- Token persistence
-- Protected routes
-- Responsive modern UI
-=======
 # Peach – frontend v3
 
 React + Vite frontend for the Peach dating app (Spring Boot backend).
@@ -64,4 +38,3 @@ src/
   pages/                     one file per route
   styles/                    tokens, base, components, layout, motion + one file per screen
 ```
->>>>>>> 8a08bf3 (updated ui)

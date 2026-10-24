@@ -1,18 +1,3 @@
-<<<<<<< HEAD
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import { AuthProvider } from './context/AuthContext';
-import './styles.css';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-=======
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -34,7 +19,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <App />
         </AuthProvider>
       </ThemeProvider>
->>>>>>> 8a08bf3 (updated ui)
     </BrowserRouter>
   </React.StrictMode>
 );

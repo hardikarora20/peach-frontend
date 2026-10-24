@@ -1,19 +1,4 @@
 import axios from "axios";
-<<<<<<< HEAD
-import { tokenStorage } from "../utils/storage";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
-  timeout: 15000,
-});
-
-api.interceptors.request.use((config) => {
-  const token = tokenStorage.get();
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-=======
 import { session } from "../utils/storage";
 import { toList, toObject } from "../utils/profile";
 
@@ -30,7 +15,6 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = session.getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
->>>>>>> 8a08bf3 (updated ui)
   return config;
 });
 
@@ -38,52 +22,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-<<<<<<< HEAD
-    if (status === 401) {
-      tokenStorage.remove();
-      window.dispatchEvent(new Event("peach:unauthorized"));
-=======
     const url = error?.config?.url || "";
     // 401/403 = JWT missing or expired (backend tokens live 1 hour). Login/register errors are just form errors.
     if ((status === 401 || status === 403) && !url.startsWith("/users")) {
       window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
->>>>>>> 8a08bf3 (updated ui)
     }
     return Promise.reject(error);
   }
 );
 
-<<<<<<< HEAD
-const unwrap = (response) => response?.data;
-
-export const authApi = {
-  login: (email, password) =>
-    api.post("/users/login", { email, password }).then(unwrap),
-  register: (email, password) =>
-    api.post("/users", { email, password }).then(unwrap),
-};
-
-export const profileApi = {
-  me: () => api.get("/profile/me").then(unwrap),
-  saveMe: (payload) => api.put("/profile/me", payload).then(unwrap),
-  feed: (payload) => api.put("/profile/feed").then(unwrap),
-  byId: (userId) => api.get(`/profile/${userId}`).then(unwrap),
-};
-
-export const swipesApi = {
-  send: ({ targetUserId, action }) =>
-    api.post("/swipes", { targetUserId, action }).then(unwrap),
-};
-
-export const matchesApi = {
-  list: () => api.get("/matches").then(unwrap),
-};
-
-export const messagesApi = {
-  list: (matchId) => api.get(`/messages/${matchId}?markRead=true`).then(unwrap),
-  send: ({ matchId, content }) =>
-    api.post("/messages", { matchId, content }).then(unwrap),
-=======
 const body = (res) => res?.data;
 
 export function getErrorMessage(err, fallback = "Something went wrong. Please try again.") {
@@ -157,7 +104,6 @@ export const messageApi = {
       .then(body)
       .then((d) => toList(d, "messages")),
   send: ({ matchId, content }) => api.post("/messages", { matchId, content }).then(body),
->>>>>>> 8a08bf3 (updated ui)
 };
 
 export default api;

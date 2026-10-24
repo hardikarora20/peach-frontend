@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-const TOKEN_KEY = 'peach_token';
-
-export const tokenStorage = {
-  get() {
-    try {
-      return localStorage.getItem(TOKEN_KEY);
-=======
 // All localStorage keys live here so we never typo a key in a page again.
 const KEYS = {
   token: "peach_token",
@@ -62,27 +54,9 @@ export const prefs = {
   getLocation() {
     try {
       return JSON.parse(read(KEYS.location) || "null");
->>>>>>> 8a08bf3 (updated ui)
     } catch {
       return null;
     }
   },
-<<<<<<< HEAD
-  set(token) {
-    try {
-      localStorage.setItem(TOKEN_KEY, token);
-    } catch {
-      // ignore
-    }
-  },
-  remove() {
-    try {
-      localStorage.removeItem(TOKEN_KEY);
-    } catch {
-      // ignore
-    }
-  }
-=======
   setLocation: (loc) => write(KEYS.location, JSON.stringify(loc)),
->>>>>>> 8a08bf3 (updated ui)
 };

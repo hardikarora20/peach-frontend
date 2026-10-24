@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 // Supported cities for the city picker (kept as-is from the original project).
->>>>>>> 8a08bf3 (updated ui)
 export const CITY_OPTIONS = [
   "Adoni",
   "Agartala",
