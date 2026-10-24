@@ -1,0 +1,479 @@
+/* Discover fills the whole screen next to the sidebar */
+.feed {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px clamp(20px, 3vw, 48px) 28px;
+}
+.feed__bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.feed__bar h1 {
+  font-size: clamp(34px, 3.4vw, 48px);
+}
+.feed__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+.feed__stage > .banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+/* ---------- Deck ---------- */
+
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 1280px;
+  isolation: isolate;
+}
+.deck__ghost {
+  position: absolute;
+  inset: 0 0 0 0;
+  z-index: -1;
+  border-radius: var(--r-xl);
+  background: var(--surface-2) center / cover no-repeat;
+  border: 1px solid var(--line);
+  transition: transform 460ms var(--ease-out), filter 460ms var(--ease-out), opacity 460ms var(--ease-out);
+}
+.deck__ghost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+}
+.deck__ghost--1 { transform: translateY(12px) scale(0.975); filter: blur(2px); }
+.deck__ghost--2 { transform: translateY(24px) scale(0.95); filter: blur(4px); opacity: 0.6; }
+.deck__ghost--1.is-advancing { transform: none; filter: none; }
+.deck__ghost--2.is-advancing { transform: translateY(12px) scale(0.975); opacity: 1; }
+
+/* ---------- Card ---------- */
+
+.fcard {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 1fr);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-3);
+  animation: card-in 560ms var(--ease-out) both;
+  transition: transform 520ms var(--ease-spring), box-shadow var(--med) var(--ease);
+  will-change: transform;
+}
+.fcard.is-dragging {
+  cursor: grabbing;
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.fcard__media {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
+.fcard__media > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 420ms var(--ease), transform 1.2s var(--ease-out);
+}
+.fcard__media > img.is-current {
+  opacity: 1;
+  transform: none;
+}
+.fcard__fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 120px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.9);
+  background: var(--grad);
+}
+.fcard__overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 120px 28px 112px;
+  color: #fff;
+  background: linear-gradient(to top, rgba(10, 5, 7, 0.88) 0%, rgba(10, 5, 7, 0.4) 45%, transparent);
+  pointer-events: none;
+}
+.fcard__overlay .icon-btn {
+  pointer-events: auto;
+}
+.fcard__name h2 {
+  font-size: clamp(36px, 3.6vw, 54px);
+  color: #fff;
+}
+.fcard__name h2 span {
+  font-weight: 400;
+  opacity: 0.85;
+}
+.fcard__name p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.fcard__chips {
+  margin-top: 12px;
+}
+.fcard__info {
+  display: none;
+}
+
+.fcard__stamp {
+  position: absolute;
+  top: 44px;
+  z-index: 4;
+  padding: 6px 18px;
+  border: 4px solid currentColor;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+}
+.fcard__stamp--like { left: 28px; color: var(--like); transform: rotate(-14deg) scale(var(--s, 1)); }
+.fcard__stamp--nope { right: 28px; color: var(--nope); transform: rotate(14deg) scale(var(--s, 1)); }
+.fcard__tint {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+}
+.fcard__tint--like { background: linear-gradient(110deg, color-mix(in srgb, var(--like) 70%, transparent), transparent 65%); }
+.fcard__tint--nope { background: linear-gradient(250deg, color-mix(in srgb, var(--nope) 70%, transparent), transparent 65%); }
+
+.fcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 40px 36px;
+  overflow-y: auto;
+}
+.fcard__body > * {
+  animation: rise 520ms var(--ease-out) backwards;
+}
+.fcard__body > :nth-child(2) { animation-delay: 70ms; }
+.fcard__body > :nth-child(3) { animation-delay: 140ms; }
+.fcard__body > :nth-child(4) { animation-delay: 210ms; }
+.fcard__body > :nth-child(5) { animation-delay: 280ms; }
+.fcard__body section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fcard__bio {
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.fcard__opener {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 20px 22px;
+  border-radius: var(--r-lg);
+  background: var(--grad-soft);
+  border: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-style: italic;
+  line-height: 1.35;
+}
+.fcard__opener svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+  margin-top: 3px;
+}
+.fcard__prompt p {
+  font-size: 24px;
+  line-height: 1.25;
+}
+.fcard__more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 700;
+}
+.fcard__more svg {
+  transition: transform var(--med) var(--ease-spring);
+}
+.fcard__more:hover svg {
+  transform: translate(2px, -2px);
+}
+.fcard--skeleton {
+  animation: none;
+}
+.fcard--skeleton .fcard__media .skeleton {
+  position: absolute;
+  inset: 0;
+}
+
+/* Floating action dock, centred under the photo */
+.dock {
+  position: absolute;
+  left: calc(54.5% / 2);
+  bottom: 26px;
+  z-index: 10;
+  display: flex;
+  gap: 18px;
+  padding: 10px;
+  border-radius: var(--r-full);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(18px) saturate(1.5);
+  transform: translateX(-50%);
+  animation: rise 600ms 200ms var(--ease-out) backwards;
+}
+.dock__btn {
+  width: 64px;
+  height: 64px;
+  transition: transform 320ms var(--ease-spring), box-shadow var(--med) var(--ease), background-color var(--med) var(--ease);
+}
+.dock__btn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+.dock__btn:active:not(:disabled) {
+  transform: scale(0.88);
+}
+.dock__btn--nope {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--nope);
+}
+.dock__btn--nope:hover:not(:disabled) {
+  background: #fff;
+  color: var(--nope);
+}
+.dock__btn--like {
+  background: var(--grad);
+  color: #fff;
+  box-shadow: var(--glow);
+}
+.dock__btn--like:hover:not(:disabled) {
+  background: var(--grad);
+  color: #fff;
+}
+.dock__btn--like:hover:not(:disabled) svg {
+  animation: nudge 600ms var(--ease-spring);
+}
+
+/* ---------- Distance popover ---------- */
+
+.distance {
+  width: 320px;
+}
+.distance__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+.distance__value {
+  font-size: 40px;
+  color: var(--accent);
+  animation: pop 260ms var(--ease-spring);
+}
+.distance__value small {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  margin-left: 4px;
+  color: var(--text-3);
+}
+.distance__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+/* ---------- Match moment ---------- */
+
+.match-moment {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 77, 141, 0.35), transparent 55%), rgba(8, 4, 6, 0.86);
+  backdrop-filter: blur(16px);
+  animation: fade 300ms var(--ease);
+}
+.match-moment__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  color: #fff;
+}
+.match-moment__pair {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.match-moment__photo .avatar {
+  border: 4px solid #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.match-moment__photo--me { transform: rotate(-8deg) translateX(16px); animation: in-left 700ms var(--ease-spring) both; }
+.match-moment__photo--them { transform: rotate(8deg) translateX(-16px); animation: in-right 700ms var(--ease-spring) both; z-index: 1; }
+@keyframes in-left { from { opacity: 0; transform: translateX(-120px) rotate(-30deg); } to { opacity: 1; transform: rotate(-8deg) translateX(16px); } }
+@keyframes in-right { from { opacity: 0; transform: translateX(120px) rotate(30deg); } to { opacity: 1; transform: rotate(8deg) translateX(-16px); } }
+.match-moment__heart {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  z-index: 2;
+  width: 50px;
+  height: 50px;
+  margin-left: -25px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--grad);
+  border: 3px solid #fff;
+  animation: pop 600ms 450ms var(--ease-spring) both;
+}
+.match-moment__burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: #ff6a9a;
+}
+.match-moment__burst svg {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+  opacity: 0;
+  animation: burst 1.1s 400ms var(--ease-out) forwards;
+}
+.match-moment__burst svg:nth-child(3n) { color: #ffb86b; }
+@keyframes burst {
+  0% { opacity: 0; transform: rotate(var(--a)) translateY(0) scale(0.3); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(1.1); }
+}
+.match-moment h2 {
+  font-size: clamp(48px, 7vw, 84px);
+  color: #fff;
+  animation: rise 600ms 300ms var(--ease-out) backwards;
+}
+.match-moment p {
+  font-size: 17px;
+  opacity: 0.85;
+  animation: rise 600ms 380ms var(--ease-out) backwards;
+}
+.match-moment__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(320px, 100%);
+  margin-top: 18px;
+  animation: rise 600ms 460ms var(--ease-out) backwards;
+}
+.match-moment__actions .btn--ghost {
+  color: rgba(255, 255, 255, 0.8);
+}
+.match-moment__actions .btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ---------- Phones: one big photo card ---------- */
+
+@media (max-width: 1100px) {
+  .fcard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fcard__body {
+    display: none;
+  }
+  .fcard__info {
+    display: inline-grid;
+  }
+  .dock {
+    left: 50%;
+  }
+  .deck {
+    max-width: 620px;
+  }
+}
+@media (max-width: 899px) {
+  .feed {
+    height: 100dvh;
+    padding: 16px 12px calc(var(--bottom-nav) + 14px);
+    gap: 12px;
+  }
+  .feed__bar h1 {
+    font-size: 32px;
+  }
+  .fcard {
+    border-radius: 26px;
+  }
+  .fcard__overlay {
+    padding: 100px 20px 104px;
+  }
+  .dock__btn {
+    width: 58px;
+    height: 58px;
+  }
+  .distance {
+    position: fixed;
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--bottom-nav) + 18px);
+    width: auto;
+  }
+}

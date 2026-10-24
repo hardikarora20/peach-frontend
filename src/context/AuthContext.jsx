@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, {
   createContext,
   useCallback,
@@ -120,10 +121,66 @@ export function AuthProvider({ children }) {
     },
     [token, authenticatedFetch]
   );
+=======
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { authApi, getErrorMessage, profileApi, UNAUTHORIZED_EVENT } from "../api/client";
+import { session } from "../utils/storage";
+import { hasEssentials } from "../utils/essentials";
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(session.getToken());
+  const [userId, setUserId] = useState(session.getUserId());
+  const [booting, setBooting] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [profileExists, setProfileExists] = useState(null); // null = not known yet
+  const [profileError, setProfileError] = useState(""); // set when the check itself failed
+  const [me, setMe] = useState(null); // own profile, used by the sidebar
+
+  const logout = useCallback(() => {
+    session.clear();
+    setToken("");
+    setUserId("");
+    setMe(null);
+    setProfileExists(false);
+    setProfileError("");
+  }, []);
+
+  const persist = useCallback((nextToken, nextUserId) => {
+    session.save(nextToken, nextUserId);
+    setToken(nextToken);
+    setUserId(nextUserId ? String(nextUserId) : "");
+  }, []);
+
+  // Onboarding is only for missing essentials (name, age 18+, gender, city, bio).
+  // A failed request is shown as "try again", never as "no profile".
+  const refreshProfileExists = useCallback(async () => {
+    if (!session.getToken()) {
+      setProfileExists(false);
+      return false;
+    }
+    setProfileError("");
+    try {
+      const profile = await profileApi.me();
+      setMe(profile);
+      const ok = hasEssentials(profile);
+      setProfileExists(ok);
+      return ok;
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) return false;
+      setProfileExists(null);
+      setProfileError(getErrorMessage(err, "Couldn't check your profile."));
+      return null;
+    }
+  }, []);
+>>>>>>> 8a08bf3 (updated ui)
 
   const login = useCallback(
     async (email, password) => {
       setAuthLoading(true);
+<<<<<<< HEAD
 
       try {
         const response = await fetch(`${API_BASE}/users/login`, {
@@ -151,11 +208,20 @@ export function AuthProvider({ children }) {
 
         await refreshProfileExists(data.token);
 
+=======
+      try {
+        const data = await authApi.login(email, password);
+        if (!data?.token) throw new Error(data?.message || "The server didn't return a login token.");
+        setProfileExists(null);
+        persist(data.token, data.userId);
+        await refreshProfileExists();
+>>>>>>> 8a08bf3 (updated ui)
         return data;
       } finally {
         setAuthLoading(false);
       }
     },
+<<<<<<< HEAD
     [persistAuth, refreshProfileExists]
   );
 
@@ -189,11 +255,27 @@ export function AuthProvider({ children }) {
           setProfileExists(false);
         }
 
+=======
+    [persist, refreshProfileExists]
+  );
+
+  // POST /users doesn't return a token, so sign in straight after
+  const register = useCallback(
+    async (email, password) => {
+      setAuthLoading(true);
+      try {
+        await authApi.register(email, password);
+        const data = await authApi.login(email, password);
+        if (!data?.token) throw new Error("Account created, but signing in failed. Please sign in.");
+        persist(data.token, data.userId);
+        setProfileExists(false);
+>>>>>>> 8a08bf3 (updated ui)
         return data;
       } finally {
         setAuthLoading(false);
       }
     },
+<<<<<<< HEAD
     [persistAuth, refreshProfileExists]
   );
 
@@ -226,10 +308,25 @@ export function AuthProvider({ children }) {
 
     return () => {
       mounted = false;
+=======
+    [persist]
+  );
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (session.getToken()) await refreshProfileExists();
+      else setProfileExists(false);
+      if (alive) setBooting(false);
+    })();
+    return () => {
+      alive = false;
+>>>>>>> 8a08bf3 (updated ui)
     };
   }, [refreshProfileExists]);
 
   useEffect(() => {
+<<<<<<< HEAD
     const handleStorage = () => {
       setToken(readToken());
       setUserId(readUserId());
@@ -240,12 +337,27 @@ export function AuthProvider({ children }) {
     return () => {
       window.removeEventListener("storage", handleStorage);
     };
+=======
+    const onUnauthorized = () => logout();
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, [logout]);
+
+  useEffect(() => {
+    const onStorage = () => {
+      setToken(session.getToken());
+      setUserId(session.getUserId());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+>>>>>>> 8a08bf3 (updated ui)
   }, []);
 
   const value = useMemo(
     () => ({
       token,
       userId,
+<<<<<<< HEAD
       booting,
       authLoading,
 
@@ -275,12 +387,29 @@ export function AuthProvider({ children }) {
       authenticatedFetch,
       refreshProfileExists,
     ]
+=======
+      me,
+      setMe,
+      booting,
+      authLoading,
+      profileExists,
+      profileError,
+      isAuthenticated: Boolean(token),
+      login,
+      register,
+      logout,
+      refreshProfileExists,
+      setProfileExists,
+    }),
+    [token, userId, me, booting, authLoading, profileExists, profileError, login, register, logout, refreshProfileExists]
+>>>>>>> 8a08bf3 (updated ui)
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
+<<<<<<< HEAD
   const context = useContext(AuthContext);
 
   if (!context) {
@@ -288,4 +417,9 @@ export function useAuth() {
   }
 
   return context;
+=======
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+>>>>>>> 8a08bf3 (updated ui)
 }

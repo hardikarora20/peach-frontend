@@ -1,0 +1,135 @@
+.match-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+.mcard {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+  aspect-ratio: 3 / 4;
+  box-shadow: var(--shadow-2);
+  transition: transform 380ms var(--ease-out), box-shadow 380ms var(--ease-out);
+}
+.mcard:hover {
+  transform: translateY(-6px) rotate(-0.6deg);
+  box-shadow: var(--shadow-3);
+}
+.mcard__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+.mcard__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 900ms var(--ease-out);
+}
+.mcard:hover .mcard__media img {
+  transform: scale(1.07);
+}
+.mcard__fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 64px;
+  color: #fff;
+  background: var(--grad);
+}
+.mcard__tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  background: var(--grad);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mcard__tag--unread {
+  background: #fff;
+  color: #1d1215;
+}
+.mcard__overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 80px 18px 18px;
+  color: #fff;
+  background: linear-gradient(to top, rgba(10, 5, 7, 0.9), transparent);
+}
+.mcard__overlay h2 {
+  font-size: 26px;
+  color: #fff;
+}
+.mcard__overlay h2 span {
+  font-weight: 400;
+  opacity: 0.8;
+}
+.mcard__overlay p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.mcard__intent {
+  font-weight: 700;
+  color: #ffc7b3;
+}
+.mcard__when {
+  font-size: 12px !important;
+  opacity: 0.65 !important;
+  transition: opacity var(--med) var(--ease);
+}
+.mcard__actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: opacity var(--med) var(--ease), transform var(--med) var(--ease-out);
+}
+.mcard:hover .mcard__actions,
+.mcard:focus-within .mcard__actions {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: none) {
+  .mcard__actions {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 560px) {
+  .match-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .mcard__overlay h2 {
+    font-size: 21px;
+  }
+  .mcard__intent,
+  .mcard__when {
+    display: none !important;
+  }
+}
