@@ -937,7 +937,7 @@ img.avatar {
 }
 
 .profile-shell {
-  max-width: 95%;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -1703,7 +1703,7 @@ textarea {
   }
 
   .profile-orbit {
-    aspect-ratio: 1.4 / 1;
+    aspect-ratio: 1;
   }
 
   .quick-strip {
@@ -1788,13 +1788,14 @@ textarea {
   }
 
   .profile-orbit {
-    aspect-ratio: 1.4 / 1;
+    aspect-ratio: 1;
   }
 }
 
 @media (max-width: 720px) {
   .profile-page {
     padding: 16px;
+    height: 90%;
   }
 
   .profile-topbar {
@@ -1851,8 +1852,26 @@ textarea {
     display: none;
   }
 
+  .dock-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-direction: row;
+    justify-content: center;
+  }
+
   .mobile-nav {
-    display: grid;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+  }
+
+  .mobile-nav .dock-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-direction: row;
+    justify-content: center;
   }
 
   .auth-art {
@@ -2477,7 +2496,7 @@ textarea {
 
 @media (max-width: 900px) {
   .main-content {
-    padding: 18px 16px 104px;
+    /* padding: 18px 16px 104px; */
   }
 
   .topbar {

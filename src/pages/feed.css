@@ -540,15 +540,33 @@
 
 @media (max-width: 760px) {
   .feed-page {
-    padding-top: 4px;
+    margin-top: 10%;
+    min-height: 80%;
+    height: 90%;
   }
 
   .feed-hero {
-    flex-direction: column;
+    margin-top: -15%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
   }
 
   .feed-icon-btn {
     align-self: flex-start;
+    padding: 14px;
+    margin: 10px 0px;
+  }
+
+  .feed-stage__ring,
+  .feed-stage__glow,
+  .ambient-bubble,
+  .focus-card__menu {
+    display: none;
+  }
+
+  .feed-icon-btn span {
+    display: none;
   }
 
   .feed-stage {
@@ -557,6 +575,9 @@
   }
 
   .focus-card {
+    /* transform: scale(0.8); */
+    width: 100%;
+    height: 100%;
     padding: 14px;
     border-radius: 26px;
   }

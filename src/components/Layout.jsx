@@ -83,17 +83,32 @@ export function AppShell({ children }) {
       </main>
 
       <nav className="mobile-nav">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `mobile-nav-item ${isActive ? "active" : ""}`.trim()
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
+        <Link to="/app/feed" className="dock-brand" aria-label="Go to feed">
+          <span className="dock-brand__mark">🍑</span>
+          {/* <span className="dock-brand__text">Peach</span> */}
+        </Link>
+        <div className="dock-links">
+          {navItems.slice(1).map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `dock-link ${isActive ? "active" : ""}`.trim()
+                }
+                aria-label={item.label}
+              >
+                <span className="dock-link__icon">
+                  <Icon size={18} />
+                </span>
+                {/* <span className="dock-link__label">{item.label}</span> */}
+              </NavLink>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );

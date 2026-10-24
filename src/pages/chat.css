@@ -408,6 +408,16 @@
   .modern-bubble {
     max-width: 82%;
   }
+
+  .modern-chat-shell {
+    height: 90%;
+    width: 100%;
+  }
+
+  .modern-chat-page {
+    width: 100%;
+    padding: 0;
+  }
 }
 
 .chat-menu-wrap {
