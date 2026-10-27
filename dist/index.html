@@ -2,13 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Peach</title>
-    <meta name="description" content="Peach dating app frontend" />
-    <script type="module" crossorigin src="/assets/index-DSJCDwcw.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Ds5BDIat.css">
+    <meta name="description" content="Peach – meet people nearby" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0e0a0c" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fraunces for headlines, Plus Jakarta Sans for everything else -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Apply the saved theme before React loads so there is no flash. Dark is the default look. -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("peach_theme") || "system";
+          var dark = saved === "dark" || (saved === "system" && !window.matchMedia("(prefers-color-scheme: light)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+        } catch (e) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-DKmMjyuY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CNQOPChS.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
