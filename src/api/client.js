@@ -2,7 +2,8 @@ import axios from "axios";
 import { session } from "../utils/storage";
 import { toList, toObject } from "../utils/profile";
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 export const UNAUTHORIZED_EVENT = "peach:unauthorized";
 
 // One axios instance for every call.
@@ -33,9 +34,14 @@ api.interceptors.response.use(
 
 const body = (res) => res?.data;
 
-export function getErrorMessage(err, fallback = "Something went wrong. Please try again.") {
-  if (err?.code === "ECONNABORTED") return "The server took too long to respond.";
-  if (err?.message === "Network Error") return "Can't reach the server. Check that the backend is running.";
+export function getErrorMessage(
+  err,
+  fallback = "Something went wrong. Please try again."
+) {
+  if (err?.code === "ECONNABORTED")
+    return "The server took too long to respond.";
+  if (err?.message === "Network Error")
+    return "Can't reach the server. Check that the backend is running.";
   const serverMsg = err?.response?.data?.message;
   // GlobalExceptionHandler hides real errors behind "Something went wrong" – the page's own text is clearer
   if (serverMsg && serverMsg !== "Something went wrong") return serverMsg;
@@ -44,16 +50,20 @@ export function getErrorMessage(err, fallback = "Something went wrong. Please tr
 }
 
 export const authApi = {
-  login: (email, password) => api.post("/users/login", { email, password }).then(body),
-  // UserController answers 404 when the email is already registered
-  register: (email, password) =>
-    api
-      .post("/users", { email, password })
-      .then(body)
-      .catch((err) => {
-        if (err?.response?.status === 404) throw new Error("An account with this email already exists. Try signing in.");
-        throw err;
-      }),
+  login: (email, password) =>
+    api.post("/users/login", { email, password }).then(body),
+
+  // Step 1: save the pending sign-up and email a 6-digit code
+  requestOtp: (email, password) =>
+    api.post("/users/register/request-otp", { email, password }).then(body),
+
+  // Get a new code (the backend enforces a 60 s cooldown)
+  resendOtp: (email) =>
+    api.post("/users/register/resend", { email }).then(body),
+
+  // Step 2: check the code → { token, userId }
+  verifyOtp: (email, otp) =>
+    api.post("/users/register/verify", { email, otp }).then(body),
 };
 
 export const profileApi = {
@@ -71,39 +81,60 @@ export const profileApi = {
     }
   },
   saveMe: (payload) => api.put("/profile/me", payload).then(body),
-  byId: (profileId) => api.get(`/profile/${encodeURIComponent(profileId)}`).then(body).then(toObject),
+  byId: (profileId) =>
+    api
+      .get(`/profile/${encodeURIComponent(profileId)}`)
+      .then(body)
+      .then(toObject),
 
   // ProfileService.calculateDistance is a Haversine that reads xCoordinate as LATITUDE
   // and yCoordinate as LONGITUDE, so send them in that order.
   feed: ({ latitude, longitude, range }) =>
     api
-      .post("/profile/feed", { xCoordinate: latitude, yCoordinate: longitude, range })
+      .post("/profile/feed", {
+        xCoordinate: latitude,
+        yCoordinate: longitude,
+        range,
+      })
       .then(body)
       .then((data) => toList(data, "profiles")),
 
   async profileIdForUser(userId) {
-    const data = await api.get(`/profile/getId/${encodeURIComponent(userId)}`).then(body);
+    const data = await api
+      .get(`/profile/getId/${encodeURIComponent(userId)}`)
+      .then(body);
     return data?.profileId || "";
   },
 };
 
 export const swipeApi = {
   // → { liked, matchCreated, matchId }
-  send: ({ targetUserId, action }) => api.post("/swipes", { targetUserId, action }).then(body).then((d) => d || {}),
+  send: ({ targetUserId, action }) =>
+    api
+      .post("/swipes", { targetUserId, action })
+      .then(body)
+      .then((d) => d || {}),
 };
 
 export const matchApi = {
   // → [{ matchId, matchedAt, otherUser (full public profile), lastMessageAt, lastMessagePreview, unreadCount }]
-  list: () => api.get("/matches").then(body).then((d) => toList(d, "matches")),
+  list: () =>
+    api
+      .get("/matches")
+      .then(body)
+      .then((d) => toList(d, "matches")),
 };
 
 export const messageApi = {
   list: (matchId) =>
     api
-      .get(`/messages/${encodeURIComponent(matchId)}`, { params: { markRead: true } })
+      .get(`/messages/${encodeURIComponent(matchId)}`, {
+        params: { markRead: true },
+      })
       .then(body)
       .then((d) => toList(d, "messages")),
-  send: ({ matchId, content }) => api.post("/messages", { matchId, content }).then(body),
+  send: ({ matchId, content }) =>
+    api.post("/messages", { matchId, content }).then(body),
 };
 
 export default api;

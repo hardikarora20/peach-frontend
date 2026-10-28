@@ -1,5 +1,17 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { authApi, getErrorMessage, profileApi, UNAUTHORIZED_EVENT } from "../api/client";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  authApi,
+  getErrorMessage,
+  profileApi,
+  UNAUTHORIZED_EVENT,
+} from "../api/client";
 import { session } from "../utils/storage";
 import { hasEssentials } from "../utils/essentials";
 
@@ -57,7 +69,10 @@ export function AuthProvider({ children }) {
       setAuthLoading(true);
       try {
         const data = await authApi.login(email, password);
-        if (!data?.token) throw new Error(data?.message || "The server didn't return a login token.");
+        if (!data?.token)
+          throw new Error(
+            data?.message || "The server didn't return a login token."
+          );
         setProfileExists(null);
         persist(data.token, data.userId);
         await refreshProfileExists();
@@ -69,16 +84,28 @@ export function AuthProvider({ children }) {
     [persist, refreshProfileExists]
   );
 
-  // POST /users doesn't return a token, so sign in straight after
-  const register = useCallback(
-    async (email, password) => {
+  // Step 1: no token yet, just sends the code
+  const requestSignupOtp = useCallback(async (email, password) => {
+    setAuthLoading(true);
+    try {
+      return await authApi.requestOtp(email, password);
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  const resendSignupOtp = useCallback((email) => authApi.resendOtp(email), []);
+
+  // Step 2: verify returns a token straight away, so no extra login call
+  const verifySignup = useCallback(
+    async (email, otp) => {
       setAuthLoading(true);
       try {
-        await authApi.register(email, password);
-        const data = await authApi.login(email, password);
-        if (!data?.token) throw new Error("Account created, but signing in failed. Please sign in.");
+        const data = await authApi.verifyOtp(email, otp);
+        if (!data?.token)
+          throw new Error("Verified, but no token came back. Please sign in.");
         persist(data.token, data.userId);
-        setProfileExists(false);
+        setProfileExists(false); // brand-new account → onboarding
         return data;
       } finally {
         setAuthLoading(false);
@@ -126,12 +153,28 @@ export function AuthProvider({ children }) {
       profileError,
       isAuthenticated: Boolean(token),
       login,
-      register,
+      requestSignupOtp,
+      resendSignupOtp,
+      verifySignup,
       logout,
       refreshProfileExists,
       setProfileExists,
     }),
-    [token, userId, me, booting, authLoading, profileExists, profileError, login, register, logout, refreshProfileExists]
+    [
+      token,
+      userId,
+      me,
+      booting,
+      authLoading,
+      profileExists,
+      profileError,
+      login,
+      requestSignupOtp,
+      resendSignupOtp,
+      verifySignup,
+      logout,
+      refreshProfileExists,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

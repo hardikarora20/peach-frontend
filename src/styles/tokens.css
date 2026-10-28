@@ -39,7 +39,11 @@
   --scrim: rgba(6, 3, 4, 0.66);
 
   --grad: linear-gradient(135deg, #ffb86b 0%, #ff7a59 42%, #ff4d8d 100%);
-  --grad-soft: linear-gradient(135deg, rgba(255, 184, 107, 0.18), rgba(255, 77, 141, 0.18));
+  --grad-soft: linear-gradient(
+    135deg,
+    rgba(255, 184, 107, 0.18),
+    rgba(255, 77, 141, 0.18)
+  );
   --glow: 0 10px 40px -8px rgba(255, 92, 110, 0.55);
 
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -83,7 +87,11 @@
   --scrim: rgba(40, 18, 14, 0.42);
 
   --grad: linear-gradient(135deg, #f7a24a 0%, #f25c3a 45%, #e2397a 100%);
-  --grad-soft: linear-gradient(135deg, rgba(247, 162, 74, 0.16), rgba(226, 57, 122, 0.14));
+  --grad-soft: linear-gradient(
+    135deg,
+    rgba(247, 162, 74, 0.16),
+    rgba(226, 57, 122, 0.14)
+  );
   --glow: 0 10px 36px -10px rgba(226, 57, 122, 0.45);
 
   --shadow-1: 0 1px 2px rgba(60, 28, 20, 0.08);
@@ -93,7 +101,8 @@
 }
 
 :root {
-  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
 
   --r-xs: 10px;
@@ -112,7 +121,7 @@
   --slow: 480ms;
 
   /* layout */
-  --sidebar: clamp(244px, 16vw, 300px);
+  --sidebar: clamp(290px, 16vw, 320px);
   --panel: clamp(330px, 27vw, 430px);
   --bottom-nav: 78px;
 }
